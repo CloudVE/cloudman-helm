@@ -100,8 +100,3 @@ ENV/
 
 # mypy
 .mypy_cache/
-=======
-static/
-
-CM2.sublime-project
-CM2.sublime-workspace
