@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: 2.0.0
 description: A CloudMan Helm chart for Kubernetes
 name: cloudman
 version: 0.1.0

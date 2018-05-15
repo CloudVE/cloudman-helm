@@ -1,4 +1,20 @@
-Get the application URL by running this command:
-
-echo http://`kubectl get nodes --namespace cloudman -o jsonpath="{.items[0].status.addresses[0].address}"`:`kubectl get --namespace cloudman -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "fullname" . }}-web`/api/v1
-
+1. Get the application URL by running these commands:
+{{- if .Values.cloudlaunch.ingress.enabled }}
+{{- range .Values.cloudlaunch.ingress.hosts }}
+  http{{ if $.Values.cloudlaunch.ingress.tls }}s{{ end }}://{{ . }}{{ $.Values.cloudlaunch.ingress.path }}
+  If running on local host, add {{ . }} to /etc/hosts, mapping it to the minikube VM ip.
+{{- end }}
+{{- else if contains "NodePort" .Values.cloudlaunch.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "cloudlaunch.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.cloudlaunch.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get svc -w {{ template "cloudlaunch.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "cloudlaunch.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo http://$SERVICE_IP:{{ .Values.cloudlaunch.service.port }}
+{{- else if contains "ClusterIP" .Values.cloudlaunch.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ template "cloudlaunch.name" . }},release={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8000 to use your application"
+  kubectl port-forward $POD_NAME 8000:80
+{{- end }}
