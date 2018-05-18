@@ -1,0 +1,22 @@
+apiVersion: v1
+entries:
+  cloudlaunch:
+  - appVersion: 2.0.2
+    created: 2018-05-19T00:28:52.854607897+05:30
+    description: A Helm chart for CloudLaunch, including the server and web UI
+    digest: 1802e024ed05602cdb7aeff8a6de62bb7668ee187458f452516e169b84295042
+    home: http://cloudlaunch.cloudve.org/
+    name: cloudlaunch
+    urls:
+    - https://github.com/CloudVE/cloudlaunch-helm/raw/master/cloudlaunch/cloudlaunch-0.1.0.tgz
+    version: 0.1.0
+  cloudman:
+  - apiVersion: 2.0.0
+    created: 2018-05-19T00:28:52.781127267+05:30
+    description: A CloudMan Helm chart for Kubernetes
+    digest: 6ca0d8faf061e58f300ec9a24cda2e3a94f5ece5fb3a13cee3d1dcc4cb5c887c
+    name: cloudman
+    urls:
+    - https://github.com/CloudVE/cloudman-helm/raw/master/cloudman/cloudman-0.1.0.tgz
+    version: 0.1.0
+generated: 2018-05-19T00:28:52.707297388+05:30
