@@ -1,9 +1,33 @@
+# CloudMan has the same dependencies and structure as cloudlaunch,
+# and only differs in the container images.
 cloudlaunch:
+    nameOverride: cloudman
+    container_name: cloudman-ui
     image:
       repository: cloudve/cloudman-ui
       tag: latest
 
-    cloudman-server:
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      path: /
+      hosts:
+        - cloudman-local
+      tls: []
+
+    cloudlaunch-server:
+        nameOverride: cloudman
+        container_name: cloudman-server
         image:
           repository: cloudve/cloudman-server
           tag: latest
+        env_prefix: CLOUDMAN
+        celery_app_name: cloudman
+        django_settings_module: cloudman.settings
+        django_dir: cloudman
+        postgresql:
+            enabled: true
+            postgresDatabase: cloudman
+            postgresUser: cloudman
+            postgresPassword: some_pass
