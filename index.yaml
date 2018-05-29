@@ -11,7 +11,7 @@ entries:
     - https://github.com/CloudVE/cloudlaunch-helm/raw/master/repo/cloudlaunch-0.1.0.tgz
     version: 0.1.0
   cloudman:
-  - apiVersion: 2.0.0
+  - appVersion: 2.0.0
     created: 2018-05-19T00:28:52.781127267+05:30
     description: A CloudMan Helm chart for Kubernetes
     digest: 6ca0d8faf061e58f300ec9a24cda2e3a94f5ece5fb3a13cee3d1dcc4cb5c887c
