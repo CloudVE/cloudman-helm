@@ -93,3 +93,5 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+cloudman/charts/
