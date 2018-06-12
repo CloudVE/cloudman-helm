@@ -1,5 +1,6 @@
 # CloudMan has the same dependencies and structure as cloudlaunch,
 # and only differs in the container images.
+
 cloudlaunch:
     nameOverride: cloudman
     container_name: cloudman-ui
@@ -26,6 +27,13 @@ cloudlaunch:
         celery_app_name: cloudman
         django_settings_module: cloudman.settings
         django_dir: cloudman
+        extra_env:
+            rancher_url:
+            rancher_api_key:
+            rancher_cluster_id:
+            rancher_project_id:
+            rancher_node_command:
+            cm_bootstrap_data:
         postgresql:
             enabled: true
             postgresDatabase: cloudman
