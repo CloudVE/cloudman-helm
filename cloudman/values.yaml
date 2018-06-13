@@ -26,7 +26,7 @@ cloudlaunch:
         env_prefix: CLOUDMAN
         celery_app_name: cloudman
         django_settings_module: cloudman.settings
-        django_dir: cloudman
+        django_dir: /app/cloudman
         extra_env:
             rancher_url:
             rancher_api_key:
