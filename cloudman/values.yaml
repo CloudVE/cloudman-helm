@@ -39,3 +39,6 @@ cloudlaunch:
             postgresDatabase: cloudman
             postgresUser: cloudman
             postgresPassword: some_pass
+        ingress:
+            enabled: true
+            path: /cloudman
