@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "keycloak_data.name" . }}-realm-data
+  labels:
+    app: {{ template "cloudman.name" . }}
+    chart: {{ template "cloudman.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+{{ (.Files.Glob "data/*").AsConfig | indent 2 }}

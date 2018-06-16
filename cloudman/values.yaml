@@ -2,43 +2,78 @@
 # and only differs in the container images.
 
 cloudlaunch:
-    nameOverride: cloudman
-    container_name: cloudman-ui
-    image:
-      repository: cloudve/cloudman-ui
-      tag: latest
+  nameOverride: cloudman
+  container_name: cloudman-ui
+  image:
+    repository: cloudve/cloudman-ui
+    tag: latest
 
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    path: /
+    hosts:
+      - cloudman-local
+    tls: []
+
+  cloudlaunch-server:
+    nameOverride: cloudman
+    container_name: cloudman-server
+    image:
+      repository: cloudve/cloudman-server
+      tag: latest
+    env_prefix: CLOUDMAN
+    celery_app_name: cloudman
+    django_settings_module: cloudman.settings
+    django_dir: /app/cloudman
+    extra_env:
+      rancher_url:
+      rancher_api_key:
+      rancher_cluster_id:
+      rancher_project_id:
+      rancher_node_command:
+      cm_bootstrap_data:
+      oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ index .Values.ingress.hosts 0 }}/auth/realms/master"
+      oidc_client_id: "cloudman"
+      oidc_public_uri: "{{.Values.ingress.protocol }}://{{ index .Values.ingress.hosts 0 }}/"
+
+    postgresql:
+      enabled: true
+      postgresDatabase: cloudman
+      postgresUser: cloudman
+      postgresPassword: some_pass
     ingress:
       enabled: true
-      annotations:
-        kubernetes.io/ingress.class: nginx
-      path: /
+      path: /cloudman
       hosts:
         - cloudman-local
-      tls: []
+      protocol: https
+keycloak:
+  persistence:
+    deployPostgres: false
 
-    cloudlaunch-server:
-        nameOverride: cloudman
-        container_name: cloudman-server
-        image:
-          repository: cloudve/cloudman-server
-          tag: latest
-        env_prefix: CLOUDMAN
-        celery_app_name: cloudman
-        django_settings_module: cloudman.settings
-        django_dir: /app/cloudman
-        extra_env:
-            rancher_url:
-            rancher_api_key:
-            rancher_cluster_id:
-            rancher_project_id:
-            rancher_node_command:
-            cm_bootstrap_data:
-        postgresql:
-            enabled: true
-            postgresDatabase: cloudman
-            postgresUser: cloudman
-            postgresPassword: some_pass
-        ingress:
-            enabled: true
-            path: /cloudman
+  keycloak:
+    ingress:
+      enabled: true
+      # Add a null host to default to IP
+      hosts:
+        - cloudman-local
+      path: /auth
+    persistence:
+      deployPostgres: false
+      dbVendor: H2
+
+    extraVolumes: |
+      - name: realm-data
+        configMap:
+          name: '{{ template "cloudman.fullname" . }}-realm-data'
+
+    extraVolumeMounts: |
+      - name: realm-data
+        mountPath: "/realm/"
+        readOnly: true
+
+    extraArgs: >
+      -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile
+      -Dkeycloak.migration.file=/realm/realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING
