@@ -14,7 +14,7 @@ cloudlaunch:
       kubernetes.io/ingress.class: nginx
     path: /
     hosts:
-      - cloudman-local
+      - ~
     tls: []
 
   cloudlaunch-server:
@@ -34,10 +34,9 @@ cloudlaunch:
       rancher_project_id:
       rancher_node_command:
       cm_bootstrap_data:
-      oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ index .Values.ingress.hosts 0 }}/auth/realms/master"
+      oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ .Values.extra_env.domain_name | default (index .Values.ingress.hosts 0) }}/auth/realms/master"
       oidc_client_id: "cloudman"
-      oidc_public_uri: "{{.Values.ingress.protocol }}://{{ index .Values.ingress.hosts 0 }}/"
-
+      oidc_public_uri: "{{.Values.ingress.protocol }}://{{ .Values.extra_env.domain_name | default (index .Values.ingress.hosts 0) }}/cloudman"
     postgresql:
       enabled: true
       postgresDatabase: cloudman
@@ -47,7 +46,7 @@ cloudlaunch:
       enabled: true
       path: /cloudman
       hosts:
-        - cloudman-local
+        - ~
       protocol: https
 keycloak:
   persistence:
@@ -58,7 +57,7 @@ keycloak:
       enabled: true
       # Add a null host to default to IP
       hosts:
-        - cloudman-local
+        - ~
       path: /auth
     persistence:
       deployPostgres: false
