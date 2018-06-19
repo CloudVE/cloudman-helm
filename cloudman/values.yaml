@@ -5,6 +5,10 @@ admin_firstname="CloudMan"
 admin_lastname="Admin"
 admin_email="cloudman@someplace.org"
 
+# Special global values which are accessible from all charts
+global:
+    domain: localhost
+
 cloudlaunch:
   nameOverride: cloudman
   container_name: cloudman-ui
@@ -38,9 +42,9 @@ cloudlaunch:
       rancher_project_id:
       rancher_node_command:
       cm_bootstrap_data:
-      oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ .Values.extra_env.domain_name | default (index .Values.ingress.hosts 0) }}/auth/realms/master"
+      oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/auth/realms/master"
       oidc_client_id: "cloudman"
-      oidc_public_uri: "{{.Values.ingress.protocol }}://{{ .Values.extra_env.domain_name | default (index .Values.ingress.hosts 0) }}/cloudman"
+      oidc_public_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/cloudman"
     postgresql:
       enabled: true
       postgresDatabase: cloudman
@@ -80,3 +84,8 @@ keycloak:
     extraArgs: >
       -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile
       -Dkeycloak.migration.file=/realm/realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING
+
+prometheus:
+  grafana:
+    ingress:
+      domain: "{{ .Values.global.domain }}"
