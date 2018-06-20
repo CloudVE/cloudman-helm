@@ -3,7 +3,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ template "cloudman.fullname" $context }}-keycloak-update
+  name: {{ template "cloudman.fullname" . }}-keycloak-update
   labels:
     app: {{ template "cloudman.name" . }}
     chart: {{ template "cloudman.chart" . }}
@@ -22,11 +22,12 @@ spec:
       - name: post-install-job
         image: "gempesaw/curl-jq"
         command: ["/bin/sh", "/cloudman/update_keycloak_user.sh"]
-         volumeMounts:    
-           - name: cloudman   
-             mountPath: /cloudman 
-             readOnly: true
-      volumes: 
+        volumeMounts:
+          - name: cloudman
+            mountPath: /cloudman
+            readOnly: true
+      volumes:
         - name: cloudman   
           configMap:   
-            name: '{{ template "cloudman.fullname" . }}-realm-data'
+            name: {{ template "keycloak_data.name" . }}-realm-data
+      restartPolicy: "OnFailure"

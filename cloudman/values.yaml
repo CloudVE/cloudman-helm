@@ -1,13 +1,13 @@
 # CloudMan has the same dependencies and structure as cloudlaunch,
 # and only differs in the container images.
 
-admin_firstname="CloudMan"
-admin_lastname="Admin"
-admin_email="cloudman@someplace.org"
+admin_firstname: "CloudMan"
+admin_lastname: "Admin"
+admin_email: "cloudman@someplace.org"
 
 # Special global values which are accessible from all charts
 global:
-    domain: localhost
+    domain: 192.168.99.100
 
 cloudlaunch:
   nameOverride: cloudman
@@ -61,6 +61,9 @@ keycloak:
     deployPostgres: false
 
   keycloak:
+    username: admin
+    password: changeMe
+
     ingress:
       enabled: true
       # Add a null host to default to IP
@@ -74,7 +77,7 @@ keycloak:
     extraVolumes: |
       - name: realm-data
         configMap:
-          name: '{{ template "cloudman.fullname" . }}-realm-data'
+          name: '{{ template "keycloak_data.name" . }}-realm-data'
 
     extraVolumeMounts: |
       - name: realm-data
