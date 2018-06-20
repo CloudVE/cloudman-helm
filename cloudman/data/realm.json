@@ -284,33 +284,6 @@
   "otpPolicyLookAheadWindow" : 1,
   "otpPolicyPeriod" : 30,
   "otpSupportedApplications" : [ "FreeOTP", "Google Authenticator" ],
-  "users" : [ {
-    "id" : "3fc2ed7c-d36b-4e84-b047-e705c53c80eb",
-    "createdTimestamp" : 1529093762759,
-    "username" : "admin",
-    "enabled" : true,
-    "totp" : false,
-    "emailVerified" : false,
-    "credentials" : [ {
-      "type" : "password",
-      "hashedSaltedValue" : "h87vBzvpgIPiLYS86eos6zzNx1+p8Fqo34WLLuRR5cIqTzNJEVCeEBaOiJ233bXIs8F2EmtC/K01tImJHtOC/Q==",
-      "salt" : "HdP0yia2VA983W62x9hc/g==",
-      "hashIterations" : 27500,
-      "counter" : 0,
-      "algorithm" : "pbkdf2-sha256",
-      "digits" : 0,
-      "period" : 0,
-      "config" : { }
-    } ],
-    "disableableCredentialTypes" : [ "password" ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "offline_access", "admin", "uma_authorization" ],
-    "clientRoles" : {
-      "account" : [ "view-profile", "manage-account" ]
-    },
-    "notBefore" : 0,
-    "groups" : [ ]
-  } ],
   "clients" : [ {
     "id" : "3c7f2e1c-dd25-4511-ab4c-b9171d3b94a1",
     "clientId" : "account",
