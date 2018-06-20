@@ -1,7 +1,10 @@
 #! /bin/sh
 
+# abort if any command fails
+set -e
 username="admin"
 password="{{ .Values.keycloak.keycloak.password }}"
+
 # get auth token
 token=$(curl -k -s -d "client_id=admin-cli" -d "username=admin" -d "password=$password" -d "grant_type=password" \
        "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/token" | jq -r '.access_token')
