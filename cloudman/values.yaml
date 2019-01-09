@@ -87,7 +87,6 @@ keycloak:
     extraArgs: >
       -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile
       -Dkeycloak.migration.file=/realm/realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING
-      -c standalone.xml
 
 prometheus:
   grafana:
