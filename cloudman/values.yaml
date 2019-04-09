@@ -5,6 +5,15 @@ admin_firstname: "CloudMan"
 admin_lastname: "Admin"
 admin_email: "cloudman@someplace.org"
 
+helmsman_config:
+  repositories:
+     - name: cloudve
+       url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+  charts:
+     - name: cloudve/galaxy-stable
+       namespace: galaxy
+#    version:
+
 # CloudMan bootstrap data
 cm_bootstrap_data:
 
@@ -42,6 +51,11 @@ cloudlaunch:
       load_bootstrap.sh: |
         #!/bin/sh
         /app/venv/bin/python manage.py load_bootstrap_data /app/secrets/bootstrap_data.json
+    extra_config_mounts:
+      - name: cloudman_extra_config
+        mount_path: /opt/cloudman/
+        config_name: '{{ template "cloudman.fullname" . }}-helmsman-config'
+        read_only: true
     extra_secret_mounts:
       - name: cloudman_bootstrap
         mount_path: /app/secrets
