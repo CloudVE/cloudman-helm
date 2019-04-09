@@ -5,6 +5,9 @@ admin_firstname: "CloudMan"
 admin_lastname: "Admin"
 admin_email: "cloudman@someplace.org"
 
+# CloudMan bootstrap data
+cm_bootstrap_data:
+
 # Special global values which are accessible from all charts
 global:
     domain: 192.168.99.100
@@ -35,12 +38,20 @@ cloudlaunch:
     celery_app_name: cloudman
     django_settings_module: cloudman.settings
     django_dir: /app/cloudman
+    extra_init_scripts:
+      load_bootstrap.sh: |
+        #!/bin/sh
+        /app/venv/bin/python manage.py load_bootstrap_data /app/secrets/bootstrap_data.json
+    extra_secret_mounts:
+      - name: cloudman_bootstrap
+        mount_path: /app/secrets
+        secret_name: '{{ template "cloudman.fullname" . }}-secret'
+        read_only: true
     extra_env:
       rancher_url:
       rancher_api_key:
       rancher_cluster_id:
       rancher_project_id:
-      rancher_node_command:
       cm_bootstrap_data:
       oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/auth/realms/master"
       oidc_client_id: "cloudman"
