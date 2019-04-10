@@ -23,6 +23,16 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
+Rancher config settings
+*/}}
+{{- define "cloudman.rancher_config" -}}
+rancher_url: {{ .Values.rancher_url }}
+rancher_api_key: {{ .Values.rancher_api_key }}
+rancher_cluster_id: {{ .Values.rancher_cluster_id }}
+rancher_project_id: {{ .Values.rancher_project_id }}
+{{- end -}}
+
+{{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}

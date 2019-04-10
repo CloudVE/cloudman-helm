@@ -57,12 +57,12 @@ cloudlaunch:
         /app/venv/bin/python manage.py load_bootstrap_data /app/secrets/bootstrap_data.json
         /app/venv/bin/python manage.py create_cluster default KUBE_RANCHER /app/secrets/rancher_config.yaml
     extra_config_mounts:
-      - name: cloudman_extra_config
+      - name: cloudman-extra-config
         mount_path: /opt/cloudman/
         config_name: '{{ template "cloudman.fullname" . }}-helmsman-config'
         read_only: true
     extra_secret_mounts:
-      - name: cloudman_bootstrap
+      - name: cloudman-bootstrap
         mount_path: /app/secrets
         secret_name: '{{ template "cloudman.fullname" . }}-secret'
         read_only: true
