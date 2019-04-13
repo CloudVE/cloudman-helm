@@ -25,11 +25,14 @@ Create chart name and version as used by the chart label.
 {{/*
 Rancher config settings
 */}}
-{{- define "cloudman.rancher_config" -}}
-rancher_url: {{ .Values.rancher_url }}
-rancher_api_key: {{ .Values.rancher_api_key }}
-rancher_cluster_id: {{ .Values.rancher_cluster_id }}
-rancher_project_id: {{ .Values.rancher_project_id }}
+{{- define "cloudman.cluster_config" -}}
+{{/* Needs to be converted from json to yaml because the data is sent as json by cloudlaunch */}}
+{{ .Values.cm_initial_cluster_data | b64dec | fromJson | toYaml }}
+rancher_config:
+  rancher_url: {{ .Values.rancher_url }}
+  rancher_api_key: {{ .Values.rancher_api_key }}
+  rancher_cluster_id: {{ .Values.rancher_cluster_id }}
+  rancher_project_id: {{ .Values.rancher_project_id }}
 {{- end -}}
 
 {{/*

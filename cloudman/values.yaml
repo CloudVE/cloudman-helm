@@ -15,7 +15,7 @@ helmsman_config:
 #    version:
 
 # CloudMan bootstrap data
-cm_bootstrap_data:
+cm_initial_cluster_data:
 rancher_url:
 rancher_api_key:
 rancher_cluster_id:
@@ -54,8 +54,8 @@ cloudlaunch:
     extra_init_scripts:
       load_bootstrap.sh: |
         #!/bin/sh
-        /app/venv/bin/python manage.py load_bootstrap_data /app/secrets/bootstrap_data.json
-        /app/venv/bin/python manage.py create_cluster default KUBE_RANCHER /app/secrets/rancher_config.yaml
+        /app/venv/bin/python manage.py import_cloud_data /app/secrets/cm_initial_cluster_data.json
+        /app/venv/bin/python manage.py create_cluster default KUBE_RANCHER /app/secrets/cm_initial_cluster_data.yaml
     extra_config_mounts:
       - name: cloudman-extra-config
         mount_path: /opt/cloudman/
