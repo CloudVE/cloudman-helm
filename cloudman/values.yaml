@@ -54,7 +54,7 @@ cloudlaunch:
     extra_init_scripts:
       load_bootstrap.sh: |
         #!/bin/sh
-        /app/venv/bin/python manage.py import_cloud_data /app/secrets/cm_initial_cluster_data.json
+        /app/venv/bin/python manage.py import_cloud_data /app/secrets/cm_initial_cluster_data.yaml
         /app/venv/bin/python manage.py create_cluster default KUBE_RANCHER /app/secrets/cm_initial_cluster_data.yaml
     extra_config_mounts:
       - name: cloudman-extra-config
