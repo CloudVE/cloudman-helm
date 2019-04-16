@@ -51,6 +51,7 @@ cloudlaunch:
     celery_app_name: cloudman
     django_settings_module: cloudman.settings
     django_dir: /app/cloudman
+    initial_data: []
     extra_init_scripts:
       load_bootstrap.sh: |
         #!/bin/sh
