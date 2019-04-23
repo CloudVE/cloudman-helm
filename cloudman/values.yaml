@@ -68,6 +68,7 @@ cloudlaunch:
         secret_name: '{{ template "cloudman.fullname" . }}-secret'
         read_only: true
     extra_env:
+      oidc_enabled: "True"
       oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/auth/realms/master"
       oidc_client_id: "cloudman"
       oidc_public_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/cloudman"

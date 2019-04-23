@@ -1,4 +1,4 @@
-# This configmap is mounted into the keycloak container and keycloak will import inital data from it
+# This configmap is mounted into the keycloak container and keycloak will import initial data from it
 apiVersion: v1
 kind: ConfigMap
 metadata:
