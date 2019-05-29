@@ -10,8 +10,17 @@ helmsman_config:
      - name: cloudve
        url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
   charts:
-     - name: cloudve/galaxy-stable
+     - name: cloudve/galaxy-cvmfs-csi
+       namespace: cvmfs
+     - name: cloudve/galaxy
        namespace: galaxy
+       values:
+         persistence:
+           storageClass: nfs-provisioner
+         postgresql:
+           persistence:
+             storageClass: ebs-provisioner
+
 #    version:
 
 # CloudMan bootstrap data
