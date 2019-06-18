@@ -10,30 +10,42 @@ helmsman_config:
      - name: cloudve
        url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
   charts:
+     - name: stable/kubernetes-dashboard
+       namespace: kube-system
+       values:
+         rbac:
+           clusterAdminRole: true
+         ingress:
+           enabled: true
+           paths:
+             - /dashboard
+             - /dashboard/*
      - name: cloudve/galaxy-cvmfs-csi
        namespace: cvmfs
      - name: cloudve/galaxy
        namespace: galaxy
        values:
+         jobs:
+           rules:
+             container-mapper-rules.yml: |
+               mappings:
+                 - tool_ids:
+                     - sort1
+                   container:
+                     docker_container_id_override: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+                 - tool_ids:
+                     - toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.72
+                   container:
+                     docker_container_id_override: quay.io/biocontainers/fastqc:0.11.8--1
+                 - tool_ids:
+                     - Grouping1
+                   container:
+                     docker_container_id_override: galaxy/galaxy:19.05
          persistence:
            storageClass: nfs-provisioner
          postgresql:
            persistence:
              storageClass: ebs-provisioner
-         container-mapper-rules.yml: |
-           mappings:
-             - tool_ids:
-                 - sort1
-               container:
-                 docker_container_id_override: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-             - tool_ids:
-                 - toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.72
-               container:
-                 docker_container_id_override: quay.io/biocontainers/fastqc:0.11.8--1
-             - tool_ids:
-                 - Grouping1
-               container:
-                 docker_container_id_override: galaxy/galaxy:19.05
 
 #    version:
 
