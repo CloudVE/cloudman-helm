@@ -31,16 +31,9 @@ helmsman_config:
                mappings:
                  - tool_ids:
                      - sort1
-                   container:
-                     docker_container_id_override: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-                 - tool_ids:
-                     - toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.72
-                   container:
-                     docker_container_id_override: quay.io/biocontainers/fastqc:0.11.8--1
-                 - tool_ids:
                      - Grouping1
                    container:
-                     docker_container_id_override: galaxy/galaxy:19.05
+                     docker_container_id_override: {{ .Values.image.repository }}:{{ .Values.image.tag }}
          persistence:
            storageClass: nfs-provisioner
          postgresql:
