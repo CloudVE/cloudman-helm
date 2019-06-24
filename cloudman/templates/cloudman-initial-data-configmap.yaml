@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "cloudman.fullname" . }}-cm-init-config
+  labels:
+    app: {{ template "cloudman.name" . }}
+    chart: {{ template "cloudman.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  projman_config.yaml: |
+{{ toYaml .Values.projman_config | indent 4 }}
+  helmsman_config.yaml: |
+{{ toYaml .Values.helmsman_config | indent 4 }}

@@ -5,6 +5,10 @@ admin_firstname: "CloudMan"
 admin_lastname: "Admin"
 admin_email: "cloudman@someplace.org"
 
+projman_config:
+  projects:
+    - name: galaxy
+
 helmsman_config:
   repositories:
      - name: cloudve
@@ -88,10 +92,12 @@ cloudlaunch:
         #!/bin/sh
         /app/venv/bin/python manage.py import_cloud_data /app/secrets/cm_initial_cluster_data.yaml
         /app/venv/bin/python manage.py create_cluster default KUBE_RANCHER /app/secrets/cm_initial_cluster_data.yaml
+        /app/venv/bin/python manage.py helmsman_load_config /opt/cloudman/helmsman_config.yaml
+        /app/venv/bin/python manage.py projman_load_config /opt/cloudman/projman_config.yaml
     extra_config_mounts:
       - name: cloudman-extra-config
         mount_path: /opt/cloudman/
-        config_name: '{{ template "cloudman.fullname" . }}-helmsman-config'
+        config_name: '{{ template "cloudman.fullname" . }}-cm-init-config'
         read_only: true
     extra_secret_mounts:
       - name: cloudman-bootstrap
