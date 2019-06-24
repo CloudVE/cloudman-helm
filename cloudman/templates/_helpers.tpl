@@ -27,7 +27,9 @@ Rancher config settings
 */}}
 {{- define "cloudman.cluster_config" -}}
 {{/* Needs to be converted from json to yaml because the data is sent as json by cloudlaunch */}}
+{{- if .Values.cm_initial_cluster_data -}}
 {{ .Values.cm_initial_cluster_data | b64dec | fromJson | toYaml }}
+{{- end -}}
 rancher_config:
   rancher_url: {{ .Values.rancher_url }}
   rancher_api_key: {{ .Values.rancher_api_key }}

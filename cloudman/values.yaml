@@ -98,6 +98,12 @@ cloudlaunch:
         mount_path: /app/secrets
         secret_name: '{{ template "cloudman.fullname" . }}-secret'
         read_only: true
+    extraVolumes: |
+      - name: kubeconfig
+        emptyDir: {}
+    extraVolumeMounts: |
+      - name: kubeconfig
+        mountPath: /home/cloudman/.kube
     extra_env:
       oidc_enabled: "True"
       oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/auth/realms/master"
