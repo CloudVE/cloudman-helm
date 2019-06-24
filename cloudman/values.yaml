@@ -17,9 +17,12 @@ helmsman_config:
            clusterAdminRole: true
          ingress:
            enabled: true
+           hosts:
+             - ~
            paths:
              - /dashboard
              - /dashboard/*
+         enableInsecureLogin: true
      - name: cloudve/galaxy-cvmfs-csi
        namespace: cvmfs
      - name: cloudve/galaxy
@@ -133,15 +136,35 @@ keycloak:
       - name: realm-data
         configMap:
           name: '{{ template "keycloak_data.name" . }}-realm-data'
+      - name: theme
+        emptyDir: {}
 
     extraVolumeMounts: |
       - name: realm-data
         mountPath: "/realm/"
         readOnly: true
+      - name: theme
+        mountPath: /opt/jboss/keycloak/themes/keycloak
 
     extraArgs: >
       -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile
       -Dkeycloak.migration.file=/realm/realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING
+
+    extraInitContainers: |
+      - name: theme-provider
+        image: cloudve/gvl-keycloak-theme:latest
+        imagePullPolicy: IfNotPresent
+        command:
+          - sh
+        args:
+          - -c
+          - |
+            echo "Copying theme..."
+            cp -R /gvltheme/* /theme
+            echo "done."
+        volumeMounts:
+          - name: theme
+            mountPath: /theme
 
 prometheus:
   grafana:
