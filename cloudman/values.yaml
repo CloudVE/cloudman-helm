@@ -7,12 +7,14 @@ admin_email: "cloudman@someplace.org"
 
 projman_config:
   projects:
-    - name: galaxy
+    - name: galaxyproject
 
 helmsman_config:
   repositories:
      - name: cloudve
        url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+     - name: jupyterhub
+       url: https://jupyterhub.github.io/helm-chart/
   charts:
      - name: stable/kubernetes-dashboard
        namespace: kube-system
@@ -30,7 +32,7 @@ helmsman_config:
      - name: cloudve/galaxy-cvmfs-csi
        namespace: cvmfs
      - name: cloudve/galaxy
-       namespace: galaxy
+       namespace: galaxyproject
        values:
          jobs:
            rules:
@@ -46,6 +48,8 @@ helmsman_config:
          postgresql:
            persistence:
              storageClass: ebs-provisioner
+         ingress:
+           path: /galaxyproject/galaxy
 
 #    version:
 
@@ -109,7 +113,7 @@ cloudlaunch:
         emptyDir: {}
     extraVolumeMounts: |
       - name: kubeconfig
-        mountPath: /home/cloudman/.kube
+        mountPath: /home/cloudman
     extra_env:
       oidc_enabled: "True"
       oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/auth/realms/master"
