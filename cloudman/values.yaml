@@ -7,7 +7,7 @@ admin_email: "cloudman@someplace.org"
 
 projman_config:
   projects:
-    - name: galaxyproject
+    - name: gvl
 
 helmsman_config:
   repositories:
@@ -32,7 +32,7 @@ helmsman_config:
      - name: cloudve/galaxy-cvmfs-csi
        namespace: cvmfs
      - name: cloudve/galaxy
-       namespace: galaxyproject
+       namespace: gvl
        values:
          jobs:
            rules:
@@ -49,7 +49,7 @@ helmsman_config:
            persistence:
              storageClass: ebs-provisioner
          ingress:
-           path: /galaxyproject/galaxy
+           path: /gvl/galaxy
 
 #    version:
 
