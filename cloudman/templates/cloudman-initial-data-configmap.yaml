@@ -11,4 +11,24 @@ data:
   projman_config.yaml: |
 {{ toYaml .Values.projman_config | indent 4 }}
   helmsman_config.yaml: |
-{{ toYaml .Values.helmsman_config | indent 4 }}
+{{- range $key, $entry := .Values.helmsman_config -}}
+{{- $key | nindent 4 -}}:
+{{- if not (eq $key "charts") -}}
+{{- toYaml $entry | nindent 6 -}}
+{{- else -}}
+{{- range $chart := $entry }}
+{{- printf "- " | nindent 6 -}}
+{{- if not $chart.tplValues -}}
+{{- toYaml $chart | indent 8 | trim -}}
+{{- else -}}
+{{- if $chart.values -}}
+{{- $bare := omit $chart "values" "tplValues" }}
+{{- $concat := merge (fromYaml (tpl (toYaml $chart.tplValues) $)) ($chart.values) -}}
+{{- toYaml (set $bare "values" $concat) | indent 8 | trim }}
+{{- else -}}
+{{- tpl (toYaml $chart.tplValues) $ | indent 8 | trim -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
