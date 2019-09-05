@@ -16,40 +16,66 @@ helmsman_config:
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
   charts:
-     - name: stable/kubernetes-dashboard
-       namespace: kube-system
-       values:
-         rbac:
-           clusterAdminRole: true
-         ingress:
-           enabled: true
-           hosts:
-             - ~
-           paths:
-             - /dashboard
-             - /dashboard/*
-         enableInsecureLogin: true
-     - name: cloudve/galaxy-cvmfs-csi
-       namespace: cvmfs
-     - name: cloudve/galaxy
-       namespace: gvl
-       values:
-         jobs:
-           rules:
-             container-mapper-rules.yml: |
-               mappings:
-                 - tool_ids:
-                     - sort1
-                     - Grouping1
-                   container:
-                     docker_container_id_override: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-         persistence:
-           storageClass: nfs-provisioner
-         postgresql:
-           persistence:
-             storageClass: ebs-provisioner
-         ingress:
-           path: /gvl/galaxy
+    - name: stable/kubernetes-dashboard
+      namespace: kube-system
+      values:
+        rbac:
+          clusterAdminRole: true
+        ingress:
+          enabled: true
+          hosts:
+            - ~
+          paths:
+            - /dashboard
+            - /dashboard/*
+        enableInsecureLogin: true
+    - name: cloudve/galaxy-cvmfs-csi
+      namespace: cvmfs
+    - name: cloudve/galaxy
+      namespace: gvl
+      tplValues:
+        config:
+          oidc_backends_config.xml: |
+            <?xml version="1.0"?>
+            <OIDC>
+                <provider name="custos">
+                    <url>{{.Values.cloudlaunch.cloudlaunch-server.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunch-server.ingress.hosts 0) }}/auth</url>
+                    <client_id>galaxy-auth</client_id>
+                    <client_secret>{{ .Values.galaxy_oidc_client_secret | default (include "keycloak_data.random_id" .) }}</client_secret>
+                    <redirect_uri>{{.Values.cloudlaunch.cloudlaunch-server.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunch-server.ingress.hosts 0) }}/authnz/custos/callback</redirect_uri>
+                    <realm>master</realm>
+                </provider>
+            </OIDC>
+      values:
+        jobs:
+          rules:
+            container-mapper-rules.yml: |
+              mappings:
+                - tool_ids:
+                    - sort1
+                    - Grouping1
+                  container:
+                    docker_container_id_override: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        config:
+          galaxy.yml:
+            galaxy:
+              enable_oidc: true
+              oidc_config_file: /galaxy/server/config/oidc_config.xml
+              oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
+          oidc_config.xml: |
+            <?xml version="1.0"?>
+            <OIDC>
+                <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
+                <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
+                <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
+            </OIDC>
+        persistence:
+          storageClass: nfs-provisioner
+        postgresql:
+          persistence:
+            storageClass: ebs-provisioner
+        ingress:
+          path: /gvl/galaxy
 
 #    version:
 
@@ -59,6 +85,7 @@ rancher_url:
 rancher_api_key:
 rancher_cluster_id:
 rancher_project_id:
+galaxy_oidc_client_secret:
 
 # Special global values which are accessible from all charts
 global:
