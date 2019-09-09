@@ -44,3 +44,10 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- define "keycloak_data.name" -}}
 {{- printf "%s-keycloak" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*
+Generate an ID for KeyCloak objects.
+*/}}
+{{- define "keycloak_data.random_id" -}}
+{{- printf "%s-%s-%s-%s-%s" (randAlphaNum 8) (randAlphaNum 4) (randAlphaNum 4) (randAlphaNum 4) (randAlphaNum 12) | lower -}}
+{{- end -}}
