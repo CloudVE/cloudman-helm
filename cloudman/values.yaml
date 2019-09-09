@@ -41,7 +41,7 @@ helmsman_config:
                 <provider name="custos">
                     <url>{{.Values.cloudlaunch.cloudlaunchServer.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchServer.ingress.hosts 0) }}/auth</url>
                     <client_id>galaxy-auth</client_id>
-                    <client_secret>{{ .Values.galaxy_oidc_client_secret | default (include "keycloak_data.random_id" .) }}</client_secret>
+                    <client_secret>{{ .Values.galaxy_oidc_client_secret }}</client_secret>
                     <redirect_uri>{{.Values.cloudlaunch.cloudlaunchServer.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchServer.ingress.hosts 0) }}/authnz/custos/callback</redirect_uri>
                     <realm>master</realm>
                 </provider>
