@@ -21,7 +21,7 @@ spec:
       containers:
       - name: post-install-job
         image: "gempesaw/curl-jq"
-        command: ["/bin/sh", "/cloudman/update_keycloak_user.sh"]
+        command: ["/bin/sh", "/cloudman/update_keycloak.sh"]
         volumeMounts:
           - name: cloudman
             mountPath: /cloudman

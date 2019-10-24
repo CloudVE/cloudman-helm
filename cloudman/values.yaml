@@ -16,7 +16,8 @@ helmsman_config:
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
   charts:
-    - name: stable/kubernetes-dashboard
+    dashboard:
+      name: stable/kubernetes-dashboard
       namespace: kube-system
       values:
         rbac:
@@ -29,10 +30,17 @@ helmsman_config:
             - /dashboard
             - /dashboard/*
         enableInsecureLogin: true
-    - name: cloudve/galaxy-cvmfs-csi
+    cvmfs:
+      name: cloudve/galaxy-cvmfs-csi
       namespace: cvmfs
-    - name: cloudve/galaxy
+    galaxy:
+      name: cloudve/galaxy
       namespace: gvl
+      oidc_client:
+        client_id: 'galaxy-auth'
+        client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
+        redirect_uris:
+          - '{{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}/authnz/custos/callback'
       tplValues:
         config:
           oidc_backends_config.xml: |
@@ -40,13 +48,16 @@ helmsman_config:
             <OIDC>
                 <provider name="custos">
                     <url>{{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}/auth</url>
-                    <client_id>galaxy-auth</client_id>
-                    <client_secret>{{ .Values.galaxy_oidc_client_secret }}</client_secret>
+                    <client_id>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_id }}</client_id>
+                    <client_secret>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_secret }}</client_secret>
                     <redirect_uri>{{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}/authnz/custos/callback</redirect_uri>
                     <realm>master</realm>
                 </provider>
             </OIDC>
       values:
+        image:
+          repository: galaxy/galaxy-k8s
+          tag: 19.09-dev
         config:
           galaxy.yml:
             galaxy:
@@ -76,7 +87,6 @@ rancher_url:
 rancher_api_key:
 rancher_cluster_id:
 rancher_project_id:
-galaxy_oidc_client_secret:
 
 # Special global values which are accessible from all charts
 global:
@@ -163,22 +173,12 @@ keycloak:
       deployPostgres: false
       dbVendor: H2 
     extraVolumes: |
-      - name: realm-data
-        configMap:
-          name: '{{ template "keycloak_data.name" . }}-realm-data'
       - name: theme
         emptyDir: {}
 
     extraVolumeMounts: |
-      - name: realm-data
-        mountPath: "/realm/"
-        readOnly: true
       - name: theme
         mountPath: /opt/jboss/keycloak/themes/keycloak
-
-    extraArgs: >
-      -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile
-      -Dkeycloak.migration.file=/realm/realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING
 
     extraInitContainers: |
       - name: theme-provider
