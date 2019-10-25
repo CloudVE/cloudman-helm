@@ -182,8 +182,7 @@ keycloak:
         readOnly: true
       - name: theme
         mountPath: /opt/jboss/keycloak/themes/keycloak
-
-        extraArgs: -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/realm/realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING
+    extraArgs: -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/realm/realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING
 
     extraInitContainers: |
       - name: theme-provider
