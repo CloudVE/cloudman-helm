@@ -48,8 +48,8 @@ helmsman_config:
             <OIDC>
                 <provider name="custos">
                     <url>{{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}/auth</url>
-                    <client_id>{{ .Values.charts.galaxy.oidc_client.client_id }}</client_id>
-                    <client_secret>{{ .Values.charts.galaxy.oidc_client.client_secret }}</client_secret>
+                    <client_id>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_id }}</client_id>
+                    <client_secret>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_secret }}</client_secret>
                     <redirect_uri>{{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}/authnz/custos/callback</redirect_uri>
                     <realm>master</realm>
                 </provider>
