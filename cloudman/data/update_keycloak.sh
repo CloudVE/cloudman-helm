@@ -15,7 +15,7 @@ user_id=$(curl -k -s -H "Content-Type: application/json" -H "Authorization: bear
 
 # update admin user info
 updated_user=$(curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" https://{{ .Values.global.domain }}/auth/admin/realms/master/users/$user_id | \
-          jq -r '.firstName="Alex" | .lastName="ITNEW" | .email="newtest@me.org"')
+          jq -r '.firstName="{{ .Values.admin_firstname }}" | .lastName="{{ .Values.admin_lastname }}" | .email="{{ .Values.admin_email }}"')
 
 # Save new info
 curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" https://{{ .Values.global.domain }}/auth/admin/realms/master/users/$user_id -d "$updated_user"
