@@ -21,9 +21,9 @@ updated_user=$(curl -k -s -H "Content-Type: application/json" -H "Authorization:
 curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" https://{{ .Values.global.domain }}/auth/admin/realms/master/users/$user_id -d "$updated_user"
 
 # Add Brute Force Detection to Master realm
-curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" https://{{ .Values.global.domain }}/auth/admin/realms/master -d ''
+curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" https://{{ .Values.global.domain }}/auth/admin/realms/master -d '{"bruteForceProtected": true, "failureFactor": 5, "maxFailureWaitSeconds": 1800, "minimumQuickLoginWaitSeconds": 300}'
 
-cloudman_client='' read -r -d '' String <<"EOF"
+cloudman_client=$(cat <<EOF
 {
     "clientId": "{{ .Values.cloudlaunch.cloudlaunchserver.extra_env.oidc_client_id }}",
     "rootUrl": "{{ include "cloudman.root_url" . }}/cloudman",
@@ -132,6 +132,7 @@ cloudman_client='' read -r -d '' String <<"EOF"
     ]
 }
 EOF
+)
 
 # Add CloudMan client
 curl -k -X POST -H "Content-Type: application/json" -H "Authorization: bearer $token" https://{{ .Values.global.domain }}/auth/admin/realms/master/clients -d "$cloudman_client"
@@ -147,7 +148,7 @@ curl -k -X POST -H "Content-Type: application/json" -H "Authorization: bearer $t
 {{- $redirect_uris = print $redirect_uris (tpl $uri $ | quote) }}
 {{- end }}
 
-{{ $client_id }}_client='' read -r -d '' String <<"EOF"
+{{ $key }}_client=$(cat <<EOF
 {
     "clientId": {{ $client_id | quote }},
     "enabled": true,
@@ -177,8 +178,9 @@ curl -k -X POST -H "Content-Type: application/json" -H "Authorization: bearer $t
     ]
 }
 EOF
+)
 
-curl -k -X POST -H "Content-Type: application/json" -H "Authorization: bearer $token" https://{{ $.Values.global.domain }}/auth/admin/realms/master/clients -d "${{ $client_id }}_client"
+curl -k -X POST -H "Content-Type: application/json" -H "Authorization: bearer $token" https://{{ $.Values.global.domain }}/auth/admin/realms/master/clients -d "${{ $key }}_client"
 {{- end -}}
 {{- end -}}
 
