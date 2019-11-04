@@ -7,7 +7,7 @@ admin_email: "cloudman@someplace.org"
 
 projman_config:
   projects:
-    - name: gvl
+    - name: default
 
 helmsman_config:
   repositories:
