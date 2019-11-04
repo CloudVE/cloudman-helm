@@ -16,7 +16,8 @@ helmsman_config:
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
   charts:
-    - name: stable/kubernetes-dashboard
+    dashboard:
+      name: stable/kubernetes-dashboard
       namespace: kube-system
       values:
         rbac:
@@ -29,24 +30,43 @@ helmsman_config:
             - /dashboard
             - /dashboard/*
         enableInsecureLogin: true
-    - name: cloudve/galaxy-cvmfs-csi
+    cvmfs:
+      name: cloudve/galaxy-cvmfs-csi
       namespace: cvmfs
-    - name: cloudve/galaxy
+    galaxy:
+      name: cloudve/galaxy
       namespace: gvl
+      oidc_client:
+        client_id: 'galaxy-auth'
+        # The client secret is required if the client is not public
+        public_client: false
+        #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
+        redirect_uris:
+          - '{{ include "cloudman.root_url" . }}/authnz/custos/callback'
+      # tplValues get processed by the templating engine of the Cloudman helm chart
+      # The resulting map is then merged with the map of values below, and passed to the application's chart
       tplValues:
         config:
           oidc_backends_config.xml: |
             <?xml version="1.0"?>
             <OIDC>
                 <provider name="custos">
-                    <url>{{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}/auth</url>
-                    <client_id>galaxy-auth</client_id>
-                    <client_secret>{{ .Values.galaxy_oidc_client_secret }}</client_secret>
-                    <redirect_uri>{{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}/authnz/custos/callback</redirect_uri>
+                    <url>{{ include "cloudman.root_url" . }}/auth</url>
+                    <client_id>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_id }}</client_id>
+                    <client_secret>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_secret }}</client_secret>
+                    <redirect_uri>{{ include "cloudman.root_url" . }}/authnz/custos/callback</redirect_uri>
                     <realm>master</realm>
                 </provider>
             </OIDC>
+      # Unlike tpl values, these values are not passed through the templating engine of the Cloudman helm chart
+      # i.e.: {{ .Values.postgresql.enabled }} in one of the values below will go as a string in the
+      # values.yml file passed to the child chart. If the application's chart passes the specific value through
+      # the tpl engine, it will be evaluated at that point from the resulting values for that chart, irrespective of the
+      # values in the Cloudman chart.
       values:
+        image:
+          repository: galaxy/galaxy-k8s
+          tag: 19.09-dev
         config:
           galaxy.yml:
             galaxy:
@@ -76,7 +96,6 @@ rancher_url:
 rancher_api_key:
 rancher_cluster_id:
 rancher_project_id:
-galaxy_oidc_client_secret:
 
 # Special global values which are accessible from all charts
 global:
@@ -126,9 +145,21 @@ cloudlaunch:
         mount_path: /app/secrets
         secret_name: '{{ template "cloudman.fullname" . }}-secret'
         read_only: true
+    extraInitContainers:
+      - name: post-install-job
+        image: "gempesaw/curl-jq"
+        command: ["/bin/sh", "/kc-init/update_keycloak.sh"]
+        volumeMounts:
+          - name: kc-init
+            mountPath: /kc-init
+            readOnly: true
+    # TODO: include release name in configmap name
     extraVolumes: |
       - name: kubeconfig
         emptyDir: {}
+      - name: kc-init   
+        configMap:   
+          name: kc-init-script  
     extraVolumeMounts: |
       - name: kubeconfig
         mountPath: /home/cloudman
@@ -148,14 +179,11 @@ cloudlaunch:
       hosts:
         - ~
       protocol: https
-keycloak:
-  persistence:
-    deployPostgres: false
 
+keycloak:
   keycloak:
     username: admin
     password: changeMe
-
     ingress:
       enabled: true
       # Add a null host to default to IP
@@ -164,25 +192,14 @@ keycloak:
       path: /auth
     persistence:
       deployPostgres: false
-      dbVendor: H2
-
+      dbVendor: H2 
     extraVolumes: |
-      - name: realm-data
-        configMap:
-          name: '{{ template "keycloak_data.name" . }}-realm-data'
       - name: theme
         emptyDir: {}
 
     extraVolumeMounts: |
-      - name: realm-data
-        mountPath: "/realm/"
-        readOnly: true
       - name: theme
         mountPath: /opt/jboss/keycloak/themes/keycloak
-
-    extraArgs: >
-      -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile
-      -Dkeycloak.migration.file=/realm/realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING
 
     extraInitContainers: |
       - name: theme-provider

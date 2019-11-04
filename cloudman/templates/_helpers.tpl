@@ -50,3 +50,10 @@ Generate an ID for KeyCloak objects.
 {{- define "keycloak_data.random_id" -}}
 {{- printf "%s-%s-%s-%s-%s" (randAlphaNum 8) (randAlphaNum 4) (randAlphaNum 4) (randAlphaNum 4) (randAlphaNum 12) | lower -}}
 {{- end -}}
+
+{{/*
+Generate root URL
+*/}}
+{{- define "cloudman.root_url" -}}
+{{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}
+{{- end -}}
