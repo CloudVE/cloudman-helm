@@ -194,7 +194,7 @@ keycloak:
           - -c
           - |
             echo "Copying theme..."
-            cp -R /gvltheme/* /theme
+            cp -R /customtheme/* /theme
             echo "done."
         volumeMounts:
           - name: theme
