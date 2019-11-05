@@ -46,7 +46,7 @@ helmsman_config:
       # tplValues get processed by the templating engine of the Cloudman helm chart
       # The resulting map is then merged with the map of values below, and passed to the application's chart
       tplValues:
-        config:
+        configs:
           oidc_backends_config.xml: |
             <?xml version="1.0"?>
             <OIDC>
@@ -67,7 +67,7 @@ helmsman_config:
         image:
           repository: galaxy/galaxy-k8s
           tag: 19.09-dev
-        config:
+        configs:
           galaxy.yml:
             galaxy:
               enable_oidc: true
