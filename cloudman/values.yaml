@@ -35,7 +35,7 @@ helmsman_config:
       namespace: cvmfs
     galaxy:
       name: cloudve/galaxy
-      namespace: gvl
+      namespace: default
       oidc_client:
         client_id: 'galaxy-auth'
         # The client secret is required if the client is not public
@@ -86,7 +86,7 @@ helmsman_config:
           persistence:
             storageClass: ebs-provisioner
         ingress:
-          path: /gvl/galaxy
+          path: /default/galaxy
 
 #    version:
 
