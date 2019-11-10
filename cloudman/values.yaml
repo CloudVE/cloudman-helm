@@ -132,7 +132,7 @@ cloudlaunch:
       load_bootstrap.sh: |
         #!/bin/sh
         /app/venv/bin/python manage.py import_cloud_data /app/secrets/cm_initial_cluster_data.yaml
-        /app/venv/bin/python manage.py create_cluster default KUBE_RANCHER /app/secrets/cm_initial_cluster_data.yaml
+        /app/venv/bin/python manage.py create_cluster {{ .Values.global.deployment_name | default .Release.Name }} KUBE_RANCHER /app/secrets/cm_initial_cluster_data.yaml
         /app/venv/bin/python manage.py helmsman_load_config /opt/cloudman/helmsman_config.yaml
         /app/venv/bin/python manage.py projman_load_config /opt/cloudman/projman_config.yaml
     extra_config_mounts:
