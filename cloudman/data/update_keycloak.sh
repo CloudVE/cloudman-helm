@@ -7,7 +7,7 @@ username="admin"
 password="{{ required $message .Values.keycloak.keycloak.password }}"
 
 # get auth token
-token=$(curl -k -s -d "client_id=admin-cli" -d "username=admin" -d "password=$password" -d "grant_type=password" \
+token=$(curl -k -s -d "client_id=admin-cli" -d "username=$username" -d "password=$password" -d "grant_type=password" \
        "{{ include "cloudman.root_url" . }}/auth/realms/master/protocol/openid-connect/token" | jq -r '.access_token')
 
 # Get current brute force protection status
@@ -24,9 +24,18 @@ else
       echo "Brute Force Protection is already on."
 fi
 
+# Add superuser role
+curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/roles -d '{"name":"superuser"}'
+
+# Get superuser role ID
+role_id=$(curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/roles | jq -r '.[] | select(.name=="superuser") | .id')
+
 # get admin user id
 user_id=$(curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/users/?username=admin | \
           jq -r '.[] | select(.username=="admin") | .id')
+
+# Add superuser role to admin user
+curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/users/$user_id/role-mappings/realm -d "[{\"id\":\"$role_id\",\"name\":\"superuser\",\"composite\":false,\"clientRole\":false,\"containerId\":\"master\"}]"
 
 # get admin user email
 user_email=$(curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/users/$user_id | \
@@ -154,6 +163,17 @@ then
                 "claim.name": "email",
                 "jsonType.label": "String"
             }
+        },
+        {
+          "name": "role",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "protocol": "openid-connect",
+          "config": {
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
         }
     ]
 }
