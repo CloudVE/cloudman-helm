@@ -69,7 +69,7 @@ helmsman_config:
       values:
         image:
           repository: galaxy/galaxy-k8s
-          tag: 19.09-dev
+          tag: 19.09
         configs:
           galaxy.yml:
             galaxy:
