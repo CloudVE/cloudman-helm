@@ -33,6 +33,9 @@ helmsman_config:
     cvmfs:
       name: cloudve/galaxy-cvmfs-csi
       namespace: cvmfs
+      values:
+        cache:
+          size: 15000
     galaxy:
       name: cloudve/galaxy
       namespace: default
