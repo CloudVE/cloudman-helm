@@ -12,7 +12,7 @@ projman_config:
 helmsman_config:
   repositories:
      - name: cloudve
-       url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+       url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl_5.0.0_alpha/
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
   charts:
