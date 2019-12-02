@@ -1,10 +1,10 @@
 dependencies:
   - name: cloudlaunch
-    repository: https://raw.githubusercontent.com/CloudVE/helm-charts/master
+    repository: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl_5.0.0_alpha
     version: 0.3.0
   - name: keycloak
     repository: https://codecentric.github.io/helm-charts
     version: 6.0.0
   - name: prometheus
-    repository: https://raw.githubusercontent.com/CloudVE/helm-charts/master
+    repository: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl_5.0.0_alpha
     version: 6.2.1
