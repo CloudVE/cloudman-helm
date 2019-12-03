@@ -9,3 +9,6 @@ dependencies:
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 8.3.0
     alias: prometheus
+  - name: influxdb
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    version: 3.0.2
