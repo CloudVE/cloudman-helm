@@ -84,10 +84,10 @@ helmsman_config:
                 <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
             </OIDC>
         persistence:
-          storageClass: nfs-provisioner
+          storageClass: nfs
         postgresql:
           persistence:
-            storageClass: ebs-provisioner
+            storageClass: ebs
         ingress:
           path: /default/galaxy
 
@@ -222,5 +222,29 @@ keycloak:
 
 prometheus:
   grafana:
+    adminPassword: "changeme"
+    sidecar:
+      dashboards:
+        searchNamespace: "ALL"
+    grafana.ini:
+      server:
+        root_url: "https://{{ .Values.global.domain . }}/grafana"
+        serve_from_sub_path: true
+      auth.generic_oauth:
+        enabled: true
+        client_id: cloudman
+        auth_url: "https://{{ .Values.global.domain . }}/auth/realms/master/protocol/openid-connect/auth"
+        token_url: "https://{{ .Values.global.domain . }}/auth/realms/master/protocol/openid-connect/token"
+        api_url: "https://{{ .Values.global.domain . }}/auth/realms/master/protocol/openid-connect/userinfo"
+        tls_skip_verify_insecure: true
+        allow_sign_up: true
+      auth:
+        oauth_auto_login: true
+        disable_login_form: true
+      auth.anonymous:
+        enabled: false
     ingress:
-      domain: "{{ .Values.global.domain }}"
+      enabled: true
+      path: /grafana
+      hosts:
+        - ~
