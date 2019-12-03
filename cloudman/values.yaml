@@ -173,9 +173,9 @@ cloudlaunch:
       oidc_public_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/cloudman"
     postgresql:
       enabled: true
-      postgresDatabase: cloudman
-      postgresUser: cloudman
-      postgresPassword: some_pass
+      postgresqlDatabase: cloudman
+      postgresqlUsername: cloudman
+      postgresqlPassword: some_pass
     ingress:
       enabled: true
       path: /cloudman
