@@ -57,3 +57,19 @@ Generate root URL
 {{- define "cloudman.root_url" -}}
 {{.Values.cloudlaunch.cloudlaunchserver.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.cloudlaunch.cloudlaunchserver.ingress.hosts 0) }}
 {{- end -}}
+
+{{/*
+influxdb service url
+*/}}
+{{- define "cloudman.influxdb_url" -}}
+{{- printf "http://%s-influxdb.%s.svc.cluster.local:8086" .Release.Name .Release.Namespace -}}
+{{- end -}}
+
+{{/*
+influxdb database name
+Currently, must match the database name created by influxdb startup scripts
+This can be overridden by creating a custom database on startup
+*/}}
+{{- define "cloudman.influxdb_database" -}}
+{{- printf "telegraf" -}}
+{{- end -}}

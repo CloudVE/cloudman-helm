@@ -61,6 +61,11 @@ helmsman_config:
                     <realm>master</realm>
                 </provider>
             </OIDC>
+        influxdb:
+          url: '{{ include "cloudman.influxdb_url" . }}'
+          database: '{{ include "cloudman.influxdb_database" . }}'
+          username: '{{ .Values.influxdb.setDefaultUser.username }}'
+          password: '{{ .Values.influxdb.setDefaultUser.password }}'
       # Unlike tpl values, these values are not passed through the templating engine of the Cloudman helm chart
       # i.e.: {{ .Values.postgresql.enabled }} in one of the values below will go as a string in the
       # values.yml file passed to the child chart. If the application's chart passes the specific value through
@@ -84,10 +89,10 @@ helmsman_config:
                 <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
             </OIDC>
         persistence:
-          storageClass: nfs-provisioner
+          storageClass: nfs
         postgresql:
           persistence:
-            storageClass: ebs-provisioner
+            storageClass: ebs
         ingress:
           path: /default/galaxy
 
@@ -222,5 +227,40 @@ keycloak:
 
 prometheus:
   grafana:
+    adminPassword: "changeme"
+    sidecar:
+      dashboards:
+        searchNamespace: "ALL"
+    grafana.ini:
+      server:
+        root_url: "https://{{ .Values.global.domain }}/grafana"
+        serve_from_sub_path: true
+      auth.generic_oauth:
+        enabled: true
+        client_id: cloudman
+        auth_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/auth"
+        token_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/token"
+        api_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/userinfo"
+        tls_skip_verify_insecure: true
+        allow_sign_up: true
+      auth:
+        oauth_auto_login: true
+        disable_login_form: true
+        disable_signout_menu: true
+      auth.anonymous:
+        enabled: false
     ingress:
-      domain: "{{ .Values.global.domain }}"
+      enabled: true
+      path: /grafana
+      hosts:
+        - ~
+
+influxdb:
+  setDefaultUser:
+    enabled: true
+    username: "admin"
+    password: "changeme"
+  initScripts:
+    enabled: true
+  persistence:
+    storageClass: ebs
