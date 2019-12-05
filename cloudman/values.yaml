@@ -249,6 +249,8 @@ prometheus:
         disable_signout_menu: true
       auth.anonymous:
         enabled: false
+      security:
+        allow_embedding: true
     ingress:
       enabled: true
       path: /grafana
