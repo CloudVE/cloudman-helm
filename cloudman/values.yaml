@@ -181,6 +181,14 @@ cloudlaunch:
       postgresqlDatabase: cloudman
       postgresqlUsername: cloudman
       postgresqlPassword: some_pass
+      #postgresqlPostgresPassword: admin_pass
+      initdbScriptsSecret: "{{ .Release.Name }}-keycloak-initdb"
+      extraEnv:
+      - name: KEYCLOAK_DB_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: "{{ .Release.Name }}-postgres-keycloak-password"
+            key: postgres-keycloak-password
     ingress:
       enabled: true
       path: /cloudman
@@ -200,7 +208,20 @@ keycloak:
       path: /auth
     persistence:
       deployPostgres: false
-      dbVendor: H2 
+      dbVendor: postgres
+      dbName: keycloak
+      dbPort: 5432
+      dbUser: keycloak
+      # Will randomly generate if not specified
+      # dbPassword: changeMe
+      existingSecret: "{{ .Release.Name }}-postgres-keycloak-password"
+      existingSecretKey: postgres-keycloak-password
+    # Specifying address directly through extraEnv since `dbHost` is not run through tpl
+    extraEnv: |
+      - name: DB_ADDR
+        value: "{{ .Release.Name }}-postgresql"
+      - name: PROXY_ADDRESS_FORWARDING
+        value: "true"
     extraVolumes: |
       - name: theme
         emptyDir: {}
