@@ -61,8 +61,15 @@ Generate root URL
 {{/*
 influxdb service url
 */}}
-{{- define "cloudman.influxdb_url" -}}
+{{- define "cloudman.influxdb_url_cluster" -}}
 {{- printf "http://%s-influxdb.%s.svc.cluster.local:8086" .Release.Name .Release.Namespace -}}
+{{- end -}}
+
+{{/*
+influxdb service url
+*/}}
+{{- define "cloudman.influxdb_url_local" -}}
+{{- printf "http://%s-influxdb:8086" .Release.Name  -}}
 {{- end -}}
 
 {{/*

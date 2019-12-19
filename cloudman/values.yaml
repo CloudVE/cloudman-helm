@@ -62,7 +62,7 @@ helmsman_config:
                 </provider>
             </OIDC>
         influxdb:
-          url: '{{ include "cloudman.influxdb_url" . }}'
+          url: '{{ include "cloudman.influxdb_url_cluster" . }}'
           database: '{{ include "cloudman.influxdb_database" . }}'
           username: '{{ .Values.influxdb.setDefaultUser.username }}'
           password: '{{ .Values.influxdb.setDefaultUser.password }}'
