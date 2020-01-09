@@ -80,3 +80,15 @@ This can be overridden by creating a custom database on startup
 {{- define "cloudman.influxdb_database" -}}
 {{- printf "telegraf" -}}
 {{- end -}}
+
+{{/*
+Return password for postgres keycloak user
+*/}}
+{{- define "cloudman.dbKeycloakPassword" -}}
+{{- if .Values.keycloak.keycloak.persistence.dbPassword }}
+    {{- .Values.keycloak.keycloak.persistence.dbPassword -}}
+{{- else -}}
+    {{- randAlphaNum 10 -}}
+{{- end -}}
+{{- end -}}
+
