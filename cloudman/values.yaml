@@ -16,20 +16,6 @@ helmsman_config:
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
   charts:
-    dashboard:
-      name: stable/kubernetes-dashboard
-      namespace: kube-system
-      values:
-        rbac:
-          clusterAdminRole: true
-        ingress:
-          enabled: true
-          hosts:
-            - ~
-          paths:
-            - /dashboard
-            - /dashboard/*
-        enableInsecureLogin: true
     cvmfs:
       name: cloudve/galaxy-cvmfs-csi
       namespace: cvmfs
