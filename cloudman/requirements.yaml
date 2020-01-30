@@ -7,7 +7,7 @@ dependencies:
     version: 6.0.0
   - name: prometheus-operator
     repository: https://kubernetes-charts.storage.googleapis.com/
-    version: 8.3.0
+    version: 8.5.14
     alias: prometheus
   - name: influxdb
     repository: https://kubernetes-charts.storage.googleapis.com/
