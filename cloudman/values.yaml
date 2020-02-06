@@ -147,6 +147,14 @@ cloudlaunch:
           - name: kc-init
             mountPath: /kc-init
             readOnly: true
+        env:
+          - name: OIDC_CLIENT_ID
+            value: "cloudman"
+          - name: KEYCLOAK_HTTP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Release.Name }}-keycloak-http"
+                key: password
     # TODO: include release name in configmap name
     extraVolumes: |
       - name: kubeconfig
@@ -158,10 +166,19 @@ cloudlaunch:
       - name: kubeconfig
         mountPath: /home/cloudman
     extra_env:
-      oidc_enabled: "True"
-      oidc_auth_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/auth/realms/master"
-      oidc_client_id: "cloudman"
-      oidc_public_uri: "{{.Values.ingress.protocol }}://{{ .Values.global.domain | default (index .Values.ingress.hosts 0) }}/cloudman"
+      - name: OIDC_ENABLED
+        value: "True"
+      - name: OIDC_AUTH_URI
+        value: "{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/master"
+      - name: OIDC_CLIENT_ID
+        value: "cloudman"
+      - name: OIDC_PUBLIC_URI
+        value: "{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/cloudman"
+      - name: KEYCLOAK_HTTP_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: "{{ .Release.Name }}-keycloak-http"
+            key: password
     postgresql:
       enabled: true
       postgresqlDatabase: cloudman
