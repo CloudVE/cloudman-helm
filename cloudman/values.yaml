@@ -174,11 +174,6 @@ cloudlaunch:
         value: "cloudman"
       - name: OIDC_PUBLIC_URI
         value: "{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/cloudman"
-      - name: KEYCLOAK_HTTP_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: "{{ .Release.Name }}-keycloak-http"
-            key: password
     postgresql:
       enabled: true
       postgresqlDatabase: cloudman
