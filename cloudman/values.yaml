@@ -283,7 +283,7 @@ influxdb:
   setDefaultUser:
     enabled: true
     username: "admin"
-    password: "changeme"
+    # password: "iAmRequired"
   initScripts:
     enabled: true
   persistence:
