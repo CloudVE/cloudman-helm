@@ -3,11 +3,9 @@
 # abort if any command fails
 set -e
 username="admin"
-{{- $message := "You must specify a password for Keycloak with --set keycloak.keycloak.password='mypassword' or by setting the key in a custom values.yaml" }}
-password="{{ required $message .Values.keycloak.keycloak.password }}"
 
 # get auth token
-token=$(curl -k -s -d "client_id=admin-cli" -d "username=$username" -d "password=$password" -d "grant_type=password" \
+token=$(curl -k -s -d "client_id=admin-cli" -d "username=$username" -d "password=$KEYCLOAK_HTTP_PASSWORD" -d "grant_type=password" \
        "{{ include "cloudman.root_url" . }}/auth/realms/master/protocol/openid-connect/token" | jq -r '.access_token')
 
 # Get current brute force protection status
@@ -60,7 +58,7 @@ if [ -z "$cloudman_client" ]
 then
       cloudman_client=$(cat <<EOF
 {
-    "clientId": "{{ .Values.cloudlaunch.cloudlaunchserver.extra_env.oidc_client_id }}",
+    "clientId": "$OIDC_CLIENT_ID",
     "rootUrl": "{{ include "cloudman.root_url" . }}/cloudman",
     "adminUrl": "{{ include "cloudman.root_url" . }}/cloudman",
     "enabled": true,
@@ -81,7 +79,7 @@ then
             "protocolMapper": "oidc-audience-mapper",
             "consentRequired": false,
             "config": {
-                "included.client.audience": "{{ .Values.cloudlaunch.cloudlaunchserver.extra_env.oidc_client_id }}",
+                "included.client.audience": "$OIDC_CLIENT_ID",
                 "id.token.claim": "false",
                 "access.token.claim": "true"
             }
