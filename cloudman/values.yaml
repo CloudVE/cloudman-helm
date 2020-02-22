@@ -125,10 +125,7 @@ cloudlaunch:
     extra_init_scripts:
       load_bootstrap.sh: |
         #!/bin/sh
-        /app/venv/bin/python manage.py import_cloud_data /app/secrets/cm_initial_cluster_data.yaml
-        /app/venv/bin/python manage.py create_cluster {{ .Values.global.deployment_name | default .Release.Name }} KUBE_RANCHER /app/secrets/cm_initial_cluster_data.yaml
-        /app/venv/bin/python manage.py projman_load_config /opt/cloudman/projman_config.yaml
-        /app/venv/bin/python manage.py helmsman_load_config /opt/cloudman/helmsman_config.yaml
+        sh /app/secrets/bootstrap.sh
     extra_config_mounts:
       - name: cloudman-extra-config
         mount_path: /opt/cloudman/
@@ -278,7 +275,44 @@ prometheus:
       path: /grafana
       hosts:
         - ~
-
+  prometheus:
+    prometheusSpec:
+      ruleSelector:
+        matchLabels:
+          release: "cloudman"
+  alertmanager:
+    tplConfig: true
+    config:
+      global:
+        resolve_timeout: 5m
+        http_config:
+          basic_auth:
+            username: autoscaleuser
+            password: changemetoarandomvalue
+      receivers:
+        - name: 'scaleup'
+          webhook_configs:
+            - url: http://{{ .Release.Name }}-cloudlaunchserver:8000/cloudman/api/v1/clusters/1/signals/scaleup/
+              send_resolved: false
+        - name: 'scaledown'
+          webhook_configs:
+            - url: http://{{ .Release.Name }}-cloudlaunchserver:8000/cloudman/api/v1/clusters/1/signals/scaledown/
+              send_resolved: false
+        - name: 'blackhole'
+      route:
+        group_by:
+          - alertname
+        group_interval: 5m
+        group_wait: 30s
+        repeat_interval: 5m
+        receiver: 'blackhole'
+        routes:
+          - match:
+              alertname: ClusterOverUtilized
+            receiver: 'scaleup'
+          - match:
+              alertname: ClusterUnderUtilized
+            receiver: 'scaledown'
 influxdb:
   setDefaultUser:
     enabled: true
