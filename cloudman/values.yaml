@@ -31,7 +31,7 @@ helmsman_config:
         public_client: false
         #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
         redirect_uris:
-          - '{{ include "cloudman.root_url" . }}/authnz/custos/callback'
+          - '{{ include "cloudman.root_url" . }}/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/authnz/custos/callback'
       # tplValues get processed by the templating engine of the Cloudman helm chart
       # The resulting map is then merged with the map of values below, and passed to the application's chart
       tplValues:
@@ -43,8 +43,10 @@ helmsman_config:
                     <url>{{ include "cloudman.root_url" . }}/auth</url>
                     <client_id>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_id }}</client_id>
                     <client_secret>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_secret }}</client_secret>
-                    <redirect_uri>{{ include "cloudman.root_url" . }}/authnz/custos/callback</redirect_uri>
+                    <redirect_uri>{{ include "cloudman.root_url" . }}/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/authnz/custos/callback</redirect_uri>
                     <realm>master</realm>
+                    <enable_idp_logout>true</enable_idp_logout>
+                    <post_logout_redirect_uri>{{ include "cloudman.root_url" . }/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/</post_logout_redirect_uri>
                 </provider>
             </OIDC>
         influxdb:
@@ -62,11 +64,16 @@ helmsman_config:
           repository: galaxy/galaxy-k8s
           tag: 20.01
         configs:
+          auth_conf.xml: |
+              <auth>
+              </auth>
           galaxy.yml:
             galaxy:
               enable_oidc: true
               oidc_config_file: /galaxy/server/config/oidc_config.xml
               oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
+              auth_config_file: /galaxy/server/config/auth_conf.xml
+              require_login: true
           oidc_config.xml: |
             <?xml version="1.0"?>
             <OIDC>
