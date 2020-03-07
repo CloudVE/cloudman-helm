@@ -207,11 +207,11 @@ then
     "clientAuthenticatorType": "client-secret",
     "redirectUris": [{{ $redirect_uris }}],
     {{- if $chart.oidc_client.public_client }}
+    "publicClient": true,
+    {{- else }}
     {{- $client_secret := tpl (required "The client secret is required if the client is not public" $chart.oidc_client.client_secret) $ }}
     "publicClient": false,
     "secret": {{ $client_secret | quote }},
-    {{- else }}
-    "publicClient": true,
     {{- end }}
     "protocol": "openid-connect",
     "fullScopeAllowed": true,
