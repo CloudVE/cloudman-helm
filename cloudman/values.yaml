@@ -246,7 +246,7 @@ keycloak:
 
 prometheus:
   grafana:
-    adminPassword: "changeme"
+    # adminPassword: "changeme"
     sidecar:
       dashboards:
         searchNamespace: "ALL"
