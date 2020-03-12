@@ -156,9 +156,9 @@ cloudlaunch:
     extraVolumes: |
       - name: kubeconfig
         emptyDir: {}
-      - name: kc-init   
-        configMap:   
-          name: kc-init-script  
+      - name: kc-init
+        configMap:
+          name: kc-init-script
     extraVolumeMounts: |
       - name: kubeconfig
         mountPath: /home/cloudman
