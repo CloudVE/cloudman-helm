@@ -197,7 +197,9 @@ cloudlaunch:
 keycloak:
   keycloak:
     username: admin
-    password: changeMe
+    # password: changeMe
+    existingSecret: "{{ .Release.Name }}-keycloak-http"
+    existingSecretKey: password
     ingress:
       enabled: true
       # Add a null host to default to IP

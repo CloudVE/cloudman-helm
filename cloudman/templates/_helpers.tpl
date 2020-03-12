@@ -92,3 +92,13 @@ Return password for postgres keycloak user
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return password for keycloak admin user
+*/}}
+{{- define "cloudman.httpKeycloakPassword" -}}
+{{- if .Values.keycloak.keycloak.password }}
+    {{- .Values.keycloak.keycloak.password -}}
+{{- else -}}
+    {{- randAlphaNum 10 -}}
+{{- end -}}
+{{- end -}}
