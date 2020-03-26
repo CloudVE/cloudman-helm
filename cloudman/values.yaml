@@ -46,7 +46,6 @@ helmsman_config:
                     <redirect_uri>{{ include "cloudman.root_url" . }}/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/authnz/custos/callback</redirect_uri>
                     <realm>master</realm>
                     <enable_idp_logout>true</enable_idp_logout>
-                    <post_logout_redirect_uri>{{ include "cloudman.root_url" . }/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/</post_logout_redirect_uri>
                 </provider>
             </OIDC>
         influxdb:
