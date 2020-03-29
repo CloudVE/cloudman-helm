@@ -57,33 +57,33 @@ spec:
         severity: warning
     - alert: ClusterUnderUtilized
       annotations:
-        message: Cluster is underutilizing resources (<75% committed)
-      # If CPU and memory request commitments < 90%
-      # and usage is < 60%
+        message: Cluster is underutilizing resources (<70% committed and <50% used)
+      # If CPU and memory request commitments < 70%
+      # and usage is < 50%
       expr: |-
         (
           sum(namespace:kube_pod_container_resource_requests_cpu_cores:sum)
             /
           sum(kube_node_status_allocatable_cpu_cores)
-            < 0.9
+            < 0.7
         )
         and
         (
-          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) < 0.6
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) < 0.5
         )
         and
         (
           sum(namespace:kube_pod_container_resource_requests_memory_bytes:sum)
             /
           sum(kube_node_status_allocatable_memory_bytes)
-            <  0.9
+            <  0.7
         )
         and
         (
           (1 - sum(:node_memory_MemAvailable_bytes:sum)
             /
            sum(kube_node_status_allocatable_memory_bytes))
-            < 0.6
+            < 0.5
         )
       for: 5m
       labels:
