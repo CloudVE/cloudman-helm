@@ -17,7 +17,7 @@ spec:
         message: Cluster has overcommitted CPU resource requests for Pods and cannot tolerate node failure.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecpuovercommit
       # If CPU request commitment is more than 100% or
-      # CPU usage is > 85% for 2m
+      # CPU usage is > 70% for 2m
       expr: |-
         (
         sum(namespace:kube_pod_container_resource_requests_cpu_cores:sum)
@@ -27,9 +27,9 @@ spec:
         )
         or
         (
-          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m]))) > 0.85
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m]))) > 0.7
         )
-      for: 3m
+      for: 2m
       labels:
         severity: warning
     - alert: ClusterOverUtilized
@@ -37,7 +37,7 @@ spec:
         message: Cluster has overcommitted memory resource requests for Pods and cannot tolerate node failure.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubememovercommit
       # If memory request commitment is more than 100% or
-      # memory usage exceeds 80%
+      # memory usage exceeds 70%
       expr: |-
         (
           sum(namespace:kube_pod_container_resource_requests_memory_bytes:sum)
@@ -50,9 +50,9 @@ spec:
           (1 - sum(:node_memory_MemAvailable_bytes:sum)
             /
            sum(kube_node_status_allocatable_memory_bytes))
-            > 0.8
+            > 0.7
         )
-      for: 3m
+      for: 2m
       labels:
         severity: warning
     - alert: ClusterUnderUtilized
