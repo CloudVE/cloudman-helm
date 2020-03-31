@@ -156,9 +156,9 @@ cloudlaunch:
     extraVolumes: |
       - name: kubeconfig
         emptyDir: {}
-      - name: kc-init   
-        configMap:   
-          name: kc-init-script  
+      - name: kc-init
+        configMap:
+          name: kc-init-script
     extraVolumeMounts: |
       - name: kubeconfig
         mountPath: /home/cloudman
@@ -197,7 +197,9 @@ cloudlaunch:
 keycloak:
   keycloak:
     username: admin
-    password: changeMe
+    # password: changeMe
+    existingSecret: "{{ .Release.Name }}-keycloak-http"
+    existingSecretKey: password
     ingress:
       enabled: true
       # Add a null host to default to IP
@@ -246,7 +248,7 @@ keycloak:
 
 prometheus:
   grafana:
-    adminPassword: "changeme"
+    # adminPassword: "changeme"
     sidecar:
       dashboards:
         searchNamespace: "ALL"
@@ -288,7 +290,7 @@ prometheus:
         http_config:
           basic_auth:
             username: autoscaleuser
-            password: changemetoarandomvalue
+            # password: changemetoarandomvalue
       receivers:
         - name: 'scaleup'
           webhook_configs:
