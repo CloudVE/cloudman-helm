@@ -201,6 +201,8 @@ cloudlaunch:
       protocol: https
 
 keycloak:
+  userRegistration:
+    enabled: false
   keycloak:
     username: admin
     password: changeMe
