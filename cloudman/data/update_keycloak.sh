@@ -22,19 +22,8 @@ else
       echo "Brute Force Protection is already on."
 fi
 
-# Get current user registration status
-user_registration=$(curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master | \
-                   jq -r '.registrationAllowed')
-
-if [ "$user_registration" = "false" ]
-then
-
-      # Add User Registration to 'master' realm
-      curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master -d '{"registrationAllowed": true, "registrationEmailAsUsername": true, "loginWithEmailAllowed": true, "duplicateEmailsAllowed": false}'
-
-else
-      echo "User Registration is already on."
-fi
+# Add User Registration to 'master' realm
+curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master -d '{"registrationAllowed": {{.Values.keycloak.userRegistration.enabled}}, "registrationEmailAsUsername": true, "loginWithEmailAllowed": true, "duplicateEmailsAllowed": false}'
 
 # Add superuser role
 curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/roles -d '{"name":"superuser"}'
