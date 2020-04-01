@@ -16,12 +16,6 @@ helmsman_config:
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
   charts:
-    cvmfs:
-      name: cloudve/galaxy-cvmfs-csi
-      namespace: cvmfs
-      values:
-        cache:
-          size: 15000
     galaxy:
       name: cloudve/galaxy
       namespace: initial
