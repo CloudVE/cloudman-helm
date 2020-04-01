@@ -14,13 +14,16 @@ realm_protection=$(curl -k -s -H "Content-Type: application/json" -H "Authorizat
 
 if [ "$realm_protection" = "false" ]
 then
-      
-      # Add Brute Force Detection to Master realm
+
+      # Add Brute Force Detection to 'master' realm
       curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master -d '{"bruteForceProtected": true, "failureFactor": 5, "maxFailureWaitSeconds": 1800, "minimumQuickLoginWaitSeconds": 300}'
 
 else
       echo "Brute Force Protection is already on."
 fi
+
+# Add User Registration to 'master' realm
+curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master -d '{"registrationAllowed": {{.Values.keycloak.userRegistration.enabled}}, "registrationEmailAsUsername": true, "loginWithEmailAllowed": true, "duplicateEmailsAllowed": false}'
 
 # Add superuser role
 curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/roles -d '{"name":"superuser"}'
