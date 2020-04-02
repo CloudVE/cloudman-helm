@@ -115,7 +115,7 @@ cloudlaunch:
     nameOverride: cloudman
     container_name: cloudman-server
     rbac:
-      serviceAccount: {{ include "cloudman.fullname" . }}-cm-svc-account
+      serviceAccount: '{{ include "cloudman.fullname" . }}-cm-svc-account'
     image:
       repository: cloudve/cloudman-server
       tag: latest
