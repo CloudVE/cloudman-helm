@@ -1,7 +1,7 @@
 dependencies:
 - name: cloudlaunch
   repository: https://raw.githubusercontent.com/CloudVE/helm-charts/master
-  version: 0.3.0
+  version: 0.4.0
 - name: keycloak
   repository: https://codecentric.github.io/helm-charts
   version: 6.0.0
@@ -11,5 +11,5 @@ dependencies:
 - name: influxdb
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 3.0.2
-digest: sha256:f459f6e9e34e1ece2cb31459bfb6a8d8eaa91079444391e155e5418373a7b03c
-generated: "2020-03-31T18:38:38.613618-04:00"
+digest: sha256:4e75347cad1bad63271ff7e2e07a11c5ccbd06ec80f95e5bf35874ce18fd76d5
+generated: "2020-04-08T13:55:31.460681-04:00"
