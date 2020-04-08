@@ -187,11 +187,10 @@ else
       echo "The cloudman client already exists."
 fi
 
-{{- range $key, $chart := .Values.helmsman_config.charts -}}
-{{- if $chart.oidc_client -}}
-{{- $client_id := tpl $chart.oidc_client.client_id $ -}}
+{{- range $key, $client := .Values.oidc_clients -}}
+{{- $client_id := tpl $client.client_id $ -}}
 {{- $redirect_uris := "" }}
-{{- range $index, $uri := $chart.oidc_client.redirect_uris }}
+{{- range $index, $uri := $client.redirect_uris }}
 {{- if $index }}
 {{- $redirect_uris = print $redirect_uris ", " }}
 {{- end }}
@@ -209,10 +208,10 @@ then
     "enabled": true,
     "clientAuthenticatorType": "client-secret",
     "redirectUris": [{{ $redirect_uris }}],
-    {{- if $chart.oidc_client.public_client }}
+    {{- if $client.public_client }}
     "publicClient": true,
     {{- else }}
-    {{- $client_secret := tpl (required "The client secret is required if the client is not public" $chart.oidc_client.client_secret) $ }}
+    {{- $client_secret := tpl (required "The client secret is required if the client is not public" $client.client_secret) $ }}
     "publicClient": false,
     "secret": {{ $client_secret | quote }},
     {{- end }}
@@ -242,5 +241,4 @@ else
       echo "The {{ $client_id }} client already exists."
 fi
 
-{{- end -}}
 {{- end -}}

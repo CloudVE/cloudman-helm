@@ -12,23 +12,64 @@ data:
 {{ toYaml .Values.projman_config | indent 4 }}
   helmsman_config.yaml: |
 {{- range $key, $entry := .Values.helmsman_config -}}
-{{- $key | nindent 4 -}}:
-{{- if not (eq $key "charts") -}}
-{{- toYaml $entry | nindent 6 -}}
-{{- else -}}
-{{- range $chartkey, $chart := $entry -}}
-{{- $chartkey | nindent 6 -}}:
-{{- if not $chart.tplValues -}}
-{{- toYaml $chart | trim | nindent 8 -}}
-{{- else -}}
-{{- if $chart.values -}}
-{{- $bare := omit $chart "values" "tplValues" -}}
-{{- $concat := merge (fromYaml (tpl (toYaml $chart.tplValues) $)) ($chart.values) -}}
-{{- toYaml (set $bare "values" $concat) | trim | nindent 8 -}}
-{{- else -}}
-{{ tpl (toYaml $chart.tplValues) $ | trim | nindent 8 -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+  {{- $key | nindent 4 -}}:
+  {{- if (eq $key "charts") -}}
+    {{- range $chartkey, $chart := $entry -}}
+      {{- $chartkey | nindent 6 -}}:
+      {{- if not $chart.tplValues -}}
+        {{- toYaml $chart | trim | nindent 8 -}}
+      {{- else -}}
+        {{- if $chart.values -}}
+          {{- $bare := omit $chart "values" "tplValues" -}}
+          {{- $concat := merge (fromYaml (tpl (toYaml $chart.tplValues) $)) ($chart.values) -}}
+          {{- toYaml (set $bare "values" $concat) | trim | nindent 8 -}}
+        {{- else -}}
+          {{ tpl (toYaml $chart.tplValues) $ | trim | nindent 8 -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- if eq $key "install_templates" -}}
+      {{- range $tmplkey, $tmpl := $entry -}}
+        {{- $tmplkey | nindent 6 -}}:
+        {{- if not $tmpl.tplValues -}}
+          {{- if not $tmpl.context -}}
+            {{- toYaml $tmpl | trim | nindent 8 -}}
+          {{- else -}}
+            {{- $bare := omit $tmpl "context" -}}
+            {{- $context := (fromYaml (tpl (toYaml $tmpl.context) $)) -}}
+            {{- toYaml (set $bare "context" $context) | trim | nindent 8 -}}
+          {{- end -}}
+        {{- else -}}
+          {{- if $tmpl.values -}}
+            {{- $bare := omit $tmpl "values" "tplValues" -}}
+            {{- $concat := merge (fromYaml (tpl (toYaml $tmpl.tplValues) $)) ($tmpl.values) -}}
+            {{- set $bare "values" $concat -}}
+            {{- if $tmpl.context -}}
+              {{- $barecontext := omit $bare "context" -}}
+              {{- $context := (fromYaml (tpl (toYaml $tmpl.context) $)) -}}
+              {{- set $barecontext "context" $context -}}
+              {{- toYaml $barecontext | trim | nindent 8 -}}
+            {{- else -}}
+              {{- toYaml $bare | trim | nindent 8 -}}
+            {{- end -}}
+          {{- else -}}
+            {{- $bare := omit $tmpl "tplValues" -}}
+            {{- $tplval := (fromYaml (tpl (toYaml $tmpl.tplValues) $)) -}}
+            {{- set $bare "tplValues" $tplval -}}
+            {{- if $tmpl.context -}}
+              {{- $barecontext := omit $bare "context" -}}
+              {{- $context := (fromYaml (tpl (toYaml $tmpl.context) $)) -}}
+              {{- set $barecontext "context" $context -}}
+              {{- toYaml $barecontext | trim | nindent 8 -}}
+            {{- else -}}
+              {{- toYaml $bare | trim | nindent 8 -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- else -}}
+      {{- toYaml $entry | nindent 6 -}}
+    {{- end -}}
+  {{- end -}}
 {{- end -}}

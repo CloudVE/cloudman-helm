@@ -7,56 +7,83 @@ admin_email: "cloudman@someplace.org"
 
 projman_config:
   projects:
-    - name: initial
+    initial:
+      charts:
+        galaxy:
+          install_template: galaxy
 
 helmsman_config:
   repositories:
      - name: cloudve
-       url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+       url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
-  charts:
+  install_templates:
+    jupyter:
+      repo: jupyterhub
+      chart: jupyterhub
+      macros: |
+          {%- macro random_int(len) -%}
+            {%- for _ in range(len) -%}
+              {{ range(10) | random }}
+            {%- endfor -%}
+          {%- endmacro -%}
+          {%- macro random_alphanumeric(len) -%}
+            {%- for _ in range(len) -%}
+              {{ ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",0,1,2,3,4,5,6,7,8,9] | random }}
+            {%- endfor -%}
+          {%- endmacro -%}
+      values:
+        ingress:
+          enabled: true
+          path: '/{{ context.project}}/jupyterhub'
+        hub:
+          baseUrl: '/{{ context.project}}/jupyterhub'
+        proxy:
+          secretToken: '{{random_alphanumeric(65)}}'
     galaxy:
-      name: cloudve/galaxy
-      namespace: initial
-      oidc_client:
-        client_id: 'galaxy-auth'
-        # The client secret is required if the client is not public
-        public_client: false
-        #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
-        redirect_uris:
-          - '{{ include "cloudman.root_url" . }}/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/authnz/custos/callback'
-      # tplValues get processed by the templating engine of the Cloudman helm chart
-      # The resulting map is then merged with the map of values below, and passed to the application's chart
-      tplValues:
+      repo: cloudve
+      chart: galaxy
+      chart_version: 3.3.0
+      default_context:
+        oidc_client_secret: 'changeme'
+        domain: '{{ .Values.global.domain }}'
+        influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
+        influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
+        influxdb_username: '{{ .Values.influxdb.setDefaultUser.username }}'
+        influxdb_password: '{{ .Values.influxdb.setDefaultUser.password }}'
+      macros: |
+          {%- macro random_int(len) -%}
+            {%- for _ in range(len) -%}
+              {{ range(10) | random }}
+            {%- endfor -%}
+          {%- endmacro -%}
+          {%- macro random_alphanumeric(len) -%}
+            {%- for _ in range(len) -%}
+              {{ ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",0,1,2,3,4,5,6,7,8,9] | random }}
+            {%- endfor -%}
+          {%- endmacro -%}
+      values: |
         configs:
+          oidc_config.xml: |
+            <?xml version="1.0"?>
+            <OIDC>
+                <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
+                <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
+                <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
+            </OIDC>
           oidc_backends_config.xml: |
             <?xml version="1.0"?>
             <OIDC>
                 <provider name="custos">
-                    <url>{{ include "cloudman.root_url" . }}/auth</url>
-                    <client_id>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_id }}</client_id>
-                    <client_secret>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_secret }}</client_secret>
-                    <redirect_uri>{{ include "cloudman.root_url" . }}/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/authnz/custos/callback</redirect_uri>
-                    <realm>master</realm>
+                    <url>https://{{context.domain}}/auth</url>
+                    <client_id>galaxy-auth</client_id>
+                    <client_secret>{{context.oidc_client_secret}}</client_secret>
+                    <redirect_uri>https://{{context.domain}}/{{context.project}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
+                    <realm>master</realm>
                 </provider>
             </OIDC>
-        influxdb:
-          url: '{{ include "cloudman.influxdb_url_cluster" . }}'
-          database: '{{ include "cloudman.influxdb_database" . }}'
-          username: '{{ .Values.influxdb.setDefaultUser.username }}'
-          password: '{{ .Values.influxdb.setDefaultUser.password }}'
-      # Unlike tpl values, these values are not passed through the templating engine of the Cloudman helm chart
-      # i.e.: {{ .Values.postgresql.enabled }} in one of the values below will go as a string in the
-      # values.yml file passed to the child chart. If the application's chart passes the specific value through
-      # the tpl engine, it will be evaluated at that point from the resulting values for that chart, irrespective of the
-      # values in the Cloudman chart.
-      values:
-        image:
-          repository: galaxy/galaxy-k8s
-          tag: 20.01
-        configs:
           auth_conf.xml: |
               <auth>
               </auth>
@@ -67,22 +94,28 @@ helmsman_config:
               oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
               auth_config_file: /galaxy/server/config/auth_conf.xml
               require_login: true
-          oidc_config.xml: |
-            <?xml version="1.0"?>
-            <OIDC>
-                <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
-                <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
-                <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
-            </OIDC>
+              session_duration: 30
+        image:
+          repository: galaxy/galaxy-k8s
+          tag: 20.01
         persistence:
           storageClass: nfs
         postgresql:
+          postgresqlPassword: {{ random_alphanumeric(10) }}
+          postgresqlPostgresPassword: {{ random_alphanumeric(10) }}
           persistence:
             storageClass: ebs
         ingress:
-          path: /initial/galaxy
+          enabled: true
+          annotations:
+             kubernetes.io/tls-acme: "true"
+             cert-manager.io/cluster-issuer: letsencrypt-prod
+             nginx.ingress.kubernetes.io/secure-backends: "true"
+          hosts:
+             - ~
+          path: /{{ context.project }}/galaxy
 
-#    version:
+
 
 # CloudMan bootstrap data
 cm_initial_cluster_data:
@@ -94,6 +127,15 @@ rancher_project_id:
 # Special global values which are accessible from all charts
 global:
     domain: 192.168.99.100
+
+oidc_clients:
+  galaxy:
+    client_id: 'galaxy-auth'
+    # The client secret is required if the client is not public
+    public_client: false
+    #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*/galaxy/authnz/custos/callback'
 
 cloudlaunch:
   nameOverride: cloudman
