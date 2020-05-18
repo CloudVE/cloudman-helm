@@ -46,7 +46,7 @@ helmsman_config:
       chart: galaxy
       chart_version: 3.3.0
       default_context:
-        oidc_client_secret: 'changeme'
+        oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret}}'
         domain: '{{ .Values.global.domain }}'
         influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
         influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
