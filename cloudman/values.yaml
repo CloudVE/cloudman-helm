@@ -116,6 +116,8 @@ helmsman_config:
       maintainers: JupyterHub
       info_url: https://jupyter.org/
       icon_url: https://jupyter.org/assets/hublogo.svg
+      context:
+        domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
           enabled: true
@@ -152,6 +154,8 @@ helmsman_config:
       description: |
         <a href="https://rstudio.com//">RStudio</a> can be used to access your personal
         RStudio environment.
+      context:
+        domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
           access_path: "/{{context.project}}/rstudio"
