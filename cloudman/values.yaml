@@ -19,31 +19,10 @@ helmsman_config:
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
   install_templates:
-    jupyter:
-      repo: jupyterhub
-      chart: jupyterhub
-      display_name: Jupyter
-      summary: JupyterHub brings the power of notebooks to groups of users
-      description: |
-        <a href="https://jupyter.org/">JupyterHub</a> can be used to access your personal
-        <a href="http://ipython.org/notebook.html">IPython Notebook</a>.
-        IPython Notebook is a web-based interactive computational environment where you can
-        combine code execution, text, mathematics, plots and rich media into a single document.
-      maintainers: JupyterHub
-      info_url: https://jupyter.org/
-      icon_url: https://jupyter.org/assets/hublogo.svg
-      template:
-        ingress:
-          enabled: true
-          path: '/{{ context.project}}/jupyterhub'
-        hub:
-          baseUrl: '/{{ context.project}}/jupyterhub'
-        proxy:
-          secretToken: '{{random_alphanumeric(65)}}'
     galaxy:
       repo: cloudve
       chart: galaxy
-      chart_version: 3.3.0
+      chart_version: 3.4.0
       display_name: Galaxy
       summary: Galaxy is an open, web-based platform for biomedical research
       description: |
@@ -72,10 +51,10 @@ helmsman_config:
             <?xml version="1.0"?>
             <OIDC>
                 <provider name="custos">
-                    <url>https://{{context.domain}}/auth</url>
+                    <url>https://june2testtemplates.cloudve.org/auth</url>
                     <client_id>galaxy-auth</client_id>
                     <client_secret>{{context.oidc_client_secret}}</client_secret>
-                    <redirect_uri>https://{{context.domain}}/{{context.project}}/galaxy/authnz/custos/callback</redirect_uri>
+                    <redirect_uri>https://june2testtemplates.cloudve.org/{{context.project}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
                     <realm>master</realm>
                 </provider>
@@ -97,8 +76,8 @@ helmsman_config:
         persistence:
           storageClass: nfs
         postgresql:
-          postgresqlPassword: {{ random_alphanumeric(10) }}
-          postgresqlPostgresPassword: {{ random_alphanumeric(10) }}
+          postgresqlPassword: "{{ random_alphanumeric(10) }}"
+          postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
           persistence:
             storageClass: ebs
         ingress:
@@ -109,8 +88,126 @@ helmsman_config:
              nginx.ingress.kubernetes.io/secure-backends: "true"
           hosts:
              - ~
+             - "june2testtemplates.cloudve.org"
+          tls:
+             - secretName: "june2testtemplates-cloudve-org-key"
+               hosts:
+                 - "june2testtemplates.cloudve.org"
           path: /{{ context.project }}/galaxy
 
+        extraVolumes:
+          - name: shared-data
+            persistentVolumeClaim:
+              claimName: "{{context.project}}-pvc"
+        extraVolumeMounts:
+          - name: shared-data
+            mountPath:  /opt/project/{{context.project}}
+
+    jupyter:
+      repo: jupyterhub
+      chart: jupyterhub
+      display_name: Jupyter
+      summary: JupyterHub brings the power of notebooks to groups of users
+      description: |
+        <a href="https://jupyter.org/">JupyterHub</a> can be used to access your personal
+        <a href="http://ipython.org/notebook.html">IPython Notebook</a>.
+        IPython Notebook is a web-based interactive computational environment where you can
+        combine code execution, text, mathematics, plots and rich media into a single document.
+      maintainers: JupyterHub
+      info_url: https://jupyter.org/
+      icon_url: https://jupyter.org/assets/hublogo.svg
+      template: |
+        ingress:
+          enabled: true
+          path: "/{{ context.project}}/jupyterhub"
+          hosts:
+            - {{context.domain}}
+        hub:
+          baseUrl: "/{{ context.project}}/jupyterhub"
+        proxy:
+          secretToken: "{{random_alphanumeric(65)}}"
+
+        singleuser:
+          storage:
+            homeMountPath: /opt/project/
+            type: dynamic
+            dynamic:
+              storageClass: nfs
+              accessMode: ["ReadWriteMany"]
+              size: 10Gi
+            extraVolumes:
+              - name: shared-data
+                persistentVolumeClaim:
+                  claimName: "{{context.project}}-pvc"
+            extraVolumeMounts:
+              - name: shared-data
+                mountPath: /opt/project/{{context.project}}
+
+    rstudio:
+      repo: cloudve
+      chart: rstudio
+      display_name: RStudio
+      chart_version: 0.2.0
+      summary: RStudio brings the power of R to users
+      description: |
+        <a href="https://rstudio.com//">RStudio</a> can be used to access your personal
+        RStudio environment.
+      template: |
+        ingress:
+          access_path: "/{{context.project}}/rstudio"
+          hosts:
+            - host: {{context.domain}}
+              paths:
+                - /{{context.project}}/rstudio(/|$)(.*)
+
+        extraVolumes:
+          - name: shared-data
+            persistentVolumeClaim:
+              claimName: "{{context.project}}-pvc"
+
+        extraVolumeMounts:
+          - name: shared-data
+            mountPath: /opt/project/{{context.project}}
+
+        persistence:
+          storageClass: nfs
+          size: 10Gi
+
+        mutableConfigs:
+          - fileName: user-settings
+            contents: |+
+              initialWorkingDirectory=/opt/project/{{context.project}}
+              
+            subPath: ".rstudio/monitored/user-settings/"
+
+    terminalman:
+      repo: cloudve
+      chart: terminalman
+      display_name: Project Terminal
+      chart_version: 0.2.0
+      summary: TerminalMan brings the power of a terminal to users
+      context:
+        oidc_client_id: '{{ .Values.oidc_clients.terminalman.client_id }}'
+        oidc_client_secret: '{{ .Values.oidc_clients.terminalman.client_secret }}'
+        domain: '{{ .Values.global.domain }}'
+      template: |
+        oidc:
+          client_id: "terminalman"
+          client_secret: {{context.oidc_client_secret}}
+          discovery_url: https://{{context.domain}}/auth/realms/master
+        ingress:
+          hosts:
+            - host: {{context.domain}}
+              paths:
+                - /{{context.project}}/terminalman
+
+        proxyinjector:
+          nameOverride: {{context.project}}-terminalman-proxy
+
+        persistence:
+          storageClass: nfs
+          existingClaim: "{{context.project}}-pvc"
+          mountPath: /opt/project/{{context.project}}
 
 
 # CloudMan bootstrap data
@@ -131,7 +228,12 @@ oidc_clients:
     public_client: false
     #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
     redirect_uris:
-      - '{{ include "cloudman.root_url" . }}/*/galaxy/authnz/custos/callback'
+      - '{{ include "cloudman.root_url" . }}/*'
+  terminalman:
+    client_id: 'terminalman'
+    #client_secret:
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*'
 
 cloudlaunch:
   nameOverride: cloudman
