@@ -51,10 +51,10 @@ helmsman_config:
             <?xml version="1.0"?>
             <OIDC>
                 <provider name="custos">
-                    <url>https://june2testtemplates.cloudve.org/auth</url>
+                    <url>https://{{context.domain}}/auth</url>
                     <client_id>galaxy-auth</client_id>
                     <client_secret>{{context.oidc_client_secret}}</client_secret>
-                    <redirect_uri>https://june2testtemplates.cloudve.org/{{context.project}}/galaxy/authnz/custos/callback</redirect_uri>
+                    <redirect_uri>https://{{context.domain}}/{{context.project}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
                     <realm>master</realm>
                 </provider>
@@ -88,11 +88,11 @@ helmsman_config:
              nginx.ingress.kubernetes.io/secure-backends: "true"
           hosts:
              - ~
-             - "june2testtemplates.cloudve.org"
+             - "{{context.domain}}"
           tls:
-             - secretName: "june2testtemplates-cloudve-org-key"
+             - secretName: "{{context.domain | replace('.', '-') }}-key"
                hosts:
-                 - "june2testtemplates.cloudve.org"
+                 - "{{context.domain}}"
           path: /{{ context.project }}/galaxy
 
         extraVolumes:
