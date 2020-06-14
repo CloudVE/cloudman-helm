@@ -19,6 +19,44 @@ helmsman_config:
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
   install_templates:
+    projman:
+      repo: cloudve
+      chart: projman
+      display_name: Project Management Chart
+      template:
+        data:
+          scratch:
+            name: "{{context.project.namespace}}-scratch"
+            storageClass: "nfs"
+            accessMode: "ReadWriteMany"
+            size: 10Gi
+          persistent:
+            name: "{{context.project.namespace}}-persistent"
+            storageClass: "rclone"
+            accessMode: "ReadWriteMany"
+            size: 50Gi
+            persistentVolume:
+              extraSpec:
+                csi:
+                  volumeAttributes:
+                    remotePathSuffix: "/{{context.project.namespace}}"
+                    file-perms: "0777"
+                    links: "true"
+                    vfs-cache-mode: "full"
+          public:
+            name: "{{context.project.namespace}}-public"
+            storageClass: "rclone"
+            accessMode: "ReadWriteMany"
+            size: 50Gi
+            persistentVolume:
+              extraSpec:
+                csi:
+                  volumeAttributes:
+                    remotePathSuffix: "/public"
+                    file-perms: "0777"
+                    links: "true"
+                    vfs-cache-mode: "full"
+
     galaxy:
       repo: cloudve
       chart: galaxy
