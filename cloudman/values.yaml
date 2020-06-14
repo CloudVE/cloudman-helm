@@ -54,7 +54,7 @@ helmsman_config:
                     <url>https://{{context.domain}}/auth</url>
                     <client_id>galaxy-auth</client_id>
                     <client_secret>{{context.oidc_client_secret}}</client_secret>
-                    <redirect_uri>https://{{context.domain}}/{{context.project}}/galaxy/authnz/custos/callback</redirect_uri>
+                    <redirect_uri>https://{{context.domain}}/{{context.project.namespace}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
                     <realm>master</realm>
                 </provider>
@@ -93,15 +93,26 @@ helmsman_config:
              - secretName: "{{context.domain | replace('.', '-') }}-key"
                hosts:
                  - "{{context.domain}}"
-          path: /{{ context.project }}/galaxy
+          path: /{{ context.project.namespace }}/galaxy
 
         extraVolumes:
-          - name: shared-data
+          - name: scratch-data
             persistentVolumeClaim:
-              claimName: "{{context.project}}-pvc"
+              claimName: "{{context.project.namespace}}-scratch-pvc"
+          - name: persistent-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-persistent-pvc"
+          - name: public-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-public-pvc"
+
         extraVolumeMounts:
-          - name: shared-data
-            mountPath:  /opt/project/{{context.project}}
+          - name: scratch-data
+            mountPath: /mnt/data/scratch
+          - name: persistent-data
+            mountPath: /mnt/data/persistent
+          - name: public-data
+            mountPath: /mnt/data/public
 
     jupyter:
       repo: jupyterhub
@@ -121,30 +132,41 @@ helmsman_config:
       template: |
         ingress:
           enabled: true
-          path: "/{{ context.project}}/jupyterhub"
+          path: "/{{ context.project.namespace}}/jupyterhub"
           hosts:
             - {{context.domain}}
         hub:
-          baseUrl: "/{{ context.project}}/jupyterhub"
+          baseUrl: "/{{ context.project.namespace}}/jupyterhub"
         proxy:
           secretToken: "{{random_alphanumeric(65)}}"
 
         singleuser:
           storage:
-            homeMountPath: /opt/project/
+            homeMountPath: "/mnt/data"
             type: dynamic
             dynamic:
               storageClass: nfs
               accessMode: ["ReadWriteMany"]
               size: 10Gi
-            extraVolumes:
-              - name: shared-data
-                persistentVolumeClaim:
-                  claimName: "{{context.project}}-pvc"
-            extraVolumeMounts:
-              - name: shared-data
-                mountPath: /opt/project/{{context.project}}
 
+          extraVolumes:
+            - name: scratch-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-scratch-pvc"
+            - name: persistent-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-persistent-pvc"
+            - name: public-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-public-pvc"
+
+          extraVolumeMounts:
+            - name: scratch-data
+              mountPath: /mnt/data/scratch
+            - name: persistent-data
+              mountPath: /mnt/data/persistent
+            - name: public-data
+              mountPath: /mnt/data/public
     rstudio:
       repo: cloudve
       chart: rstudio
@@ -158,20 +180,30 @@ helmsman_config:
         domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
-          access_path: "/{{context.project}}/rstudio"
+          access_path: "/{{context.project.namespace}}/rstudio"
           hosts:
             - host: {{context.domain}}
               paths:
-                - /{{context.project}}/rstudio(/|$)(.*)
+                - /{{context.project.namespace}}/rstudio(/|$)(.*)
 
         extraVolumes:
-          - name: shared-data
+          - name: scratch-data
             persistentVolumeClaim:
-              claimName: "{{context.project}}-pvc"
+              claimName: "{{context.project.namespace}}-scratch-pvc"
+          - name: persistent-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-persistent-pvc"
+          - name: public-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-public-pvc"
 
         extraVolumeMounts:
-          - name: shared-data
-            mountPath: /opt/project/{{context.project}}
+          - name: scratch-data
+            mountPath: /mnt/data/scratch
+          - name: persistent-data
+            mountPath: /mnt/data/persistent
+          - name: public-data
+            mountPath: /mnt/data/public
 
         persistence:
           storageClass: nfs
@@ -180,7 +212,7 @@ helmsman_config:
         mutableConfigs:
           - fileName: user-settings
             contents: |+
-              initialWorkingDirectory=/opt/project/{{context.project}}
+              initialWorkingDirectory=/mnt/data
               
             subPath: ".rstudio/monitored/user-settings/"
 
@@ -203,15 +235,29 @@ helmsman_config:
           hosts:
             - host: {{context.domain}}
               paths:
-                - /{{context.project}}/terminalman
+                - /{{context.project.namespace}}/terminalman
 
         proxyinjector:
-          nameOverride: {{context.project}}-terminalman-proxy
+          nameOverride: {{context.project.namespace}}-terminalman-proxy
 
         persistence:
           storageClass: nfs
-          existingClaim: "{{context.project}}-pvc"
-          mountPath: /opt/project/{{context.project}}
+          existingClaim: "{{context.project.namespace}}-scratch-pvc"
+          mountPath: /mnt/data/scratch
+
+        extraVolumes:
+          - name: persistent-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-persistent-pvc"
+          - name: public-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-public-pvc"
+
+        extraVolumeMounts:
+          - name: persistent-data
+            mountPath: /mnt/data/persistent
+          - name: public-data
+            mountPath: /mnt/data/public
 
 
 # CloudMan bootstrap data
