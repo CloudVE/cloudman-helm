@@ -58,7 +58,7 @@ helmsman_config:
                     vfs-cache-mode: "full"
         configs:
           jupyter_notebook_config.py: |
-            c.NotebookApp.notebook_dir = '/gvl/' 
+            c.NotebookApp.notebook_dir = '{{context.starting_dir}}'
 
     galaxy:
       repo: cloudve
@@ -194,7 +194,7 @@ helmsman_config:
             - name: OAUTH2_TOKEN_URL
               value: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/token"
             - name: OAUTH_CALLBACK_URL
-              value: "https://{{context.domain}}/{{context.project}}/jupyterhub/hub/oauth_callback"
+              value: "https://{{context.domain}}/{{context.project.namespace}}/jupyterhub/hub/oauth_callback"
 
         proxy:
           secretToken: "{{random_alphanumeric(65)}}"
@@ -266,7 +266,7 @@ helmsman_config:
         mutableConfigs:
           - fileName: user-settings
             contents: |+
-              initialWorkingDirectory=/gvl/
+              initialWorkingDirectory={{context.starting_dir}}
               
             subPath: ".rstudio/monitored/user-settings/"
 
@@ -279,6 +279,7 @@ helmsman_config:
         oidc_client_id: '{{ .Values.oidc_clients.terminalman.client_id }}'
         oidc_client_secret: '{{ .Values.oidc_clients.terminalman.client_secret }}'
         domain: '{{ .Values.global.domain }}'
+        starting_dir: "/gvl/projects/current"
       template: |
         oidc:
           client_id: "terminalman"
@@ -310,7 +311,7 @@ helmsman_config:
           - name: public-data
             mountPath: /gvl/public
 
-        initialWorkingDir: "/gvl"
+        initialWorkingDir: "{{context.starting_dir}}"
 
 
 # CloudMan bootstrap data
