@@ -23,7 +23,7 @@ helmsman_config:
       repo: cloudve
       chart: projman
       display_name: Project Management Chart
-      template:
+      template: |
         projectName: "{{context.project.namespace}}"
         data:
           project:
@@ -59,7 +59,6 @@ helmsman_config:
     galaxy:
       repo: cloudve
       chart: galaxy
-      chart_version: 3.4.0
       display_name: Galaxy
       summary: Galaxy is an open, web-based platform for biomedical research
       description: |
@@ -228,7 +227,6 @@ helmsman_config:
       repo: cloudve
       chart: rstudio
       display_name: RStudio
-      chart_version: 0.2.0
       summary: RStudio brings the power of R to users
       description: |
         <a href="https://rstudio.com//">RStudio</a> can be used to access your personal
@@ -272,7 +270,6 @@ helmsman_config:
       repo: cloudve
       chart: terminalman
       display_name: Project Terminal
-      chart_version: 0.2.0
       summary: TerminalMan brings the power of a terminal to users
       context:
         oidc_client_id: '{{ .Values.oidc_clients.terminalman.client_id }}'
