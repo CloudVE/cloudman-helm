@@ -23,6 +23,8 @@ helmsman_config:
       repo: cloudve
       chart: projman
       display_name: Project Management Chart
+      context:
+        starting_dir: "/gvl"
       template: |
         projectName: "{{context.project.namespace}}"
         data:
@@ -236,6 +238,7 @@ helmsman_config:
         <a href="https://rstudio.com//">RStudio</a> can be used to access your personal
         RStudio environment.
       context:
+        starting_dir: "/gvl/projects/current"
         domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
