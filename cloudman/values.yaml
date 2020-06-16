@@ -185,16 +185,6 @@ helmsman_config:
 
         hub:
           baseUrl: "/{{ context.project.namespace}}/jupyterhub"
-          extraVolumes:
-            - name: notebook-conf
-              configMap:
-                name: {{context.domain}}-projman-configs
-                items:
-                  - key: "jupyter_notebook_config.py"
-                    path: "jupyter_notebook_config.py"
-          extraVolumeMounts:
-            - name: notebook-conf
-              mountPath: /etc/jupyter/
           extraEnv:
             - name: OAUTH2_AUTHORIZE_URL
               value: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/auth"
@@ -213,20 +203,26 @@ helmsman_config:
               storageClass: nfs
               accessMode: ["ReadWriteMany"]
               size: 10Gi
-
-          extraVolumes:
-            - name: project-data
-              persistentVolumeClaim:
-                claimName: "{{context.project.namespace}}-project-data-pvc"
-            - name: public-data
-              persistentVolumeClaim:
-                claimName: "{{context.project.namespace}}-public-data-pvc"
-
-          extraVolumeMounts:
-            - name: project-data
-              mountPath: /gvl/projects/current
-            - name: public-data
-              mountPath: /gvl/public
+            extraVolumes:
+              - name: project-data
+                persistentVolumeClaim:
+                  claimName: "{{context.project.namespace}}-project-data-pvc"
+              - name: public-data
+                persistentVolumeClaim:
+                  claimName: "{{context.project.namespace}}-public-data-pvc"
+              - name: notebook-conf
+                configMap:
+                  name: {{context.domain}}-projman-configs
+                  items:
+                    - key: "jupyter_notebook_config.py"
+                      path: "jupyter_notebook_config.py"
+            extraVolumeMounts:
+              - name: project-data
+                mountPath: /gvl/projects/current
+              - name: public-data
+                mountPath: /gvl/public
+              - name: notebook-conf
+                mountPath: /etc/jupyter/
 
     rstudio:
       repo: cloudve
