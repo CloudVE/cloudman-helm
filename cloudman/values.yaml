@@ -212,7 +212,7 @@ helmsman_config:
                   claimName: "{{context.project.namespace}}-public-data-pvc"
               - name: notebook-conf
                 configMap:
-                  name: {{context.domain}}-projman-configs
+                  name: {{context.project.namespace}}-projman-configs
                   items:
                     - key: "jupyter_notebook_config.py"
                       path: "jupyter_notebook_config.py"
