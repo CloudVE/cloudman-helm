@@ -34,6 +34,8 @@ helmsman_config:
             persistentVolume:
               extraSpec:
                 csi:
+                  driver: csi-rclone
+                  volumeHandle: {{context.project.namespace}}-project-data-pv
                   volumeAttributes:
                     remotePathSuffix: "/projects/{{context.project.namespace}}"
                     file-perms: "0777"
@@ -47,6 +49,8 @@ helmsman_config:
             persistentVolume:
               extraSpec:
                 csi:
+                  driver: csi-rclone
+                  volumeHandle: {{context.project.namespace}}-public-data-pv
                   volumeAttributes:
                     remotePathSuffix: "/public"
                     file-perms: "0777"
