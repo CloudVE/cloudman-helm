@@ -7,56 +7,100 @@ admin_email: "cloudman@someplace.org"
 
 projman_config:
   projects:
-    - name: initial
+    initial:
+      charts:
+        galaxy:
+          install_template: galaxy
 
 helmsman_config:
   repositories:
      - name: cloudve
-       url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+       url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
-  charts:
-    galaxy:
-      name: cloudve/galaxy
-      namespace: initial
-      oidc_client:
-        client_id: 'galaxy-auth'
-        # The client secret is required if the client is not public
-        public_client: false
-        #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
-        redirect_uris:
-          - '{{ include "cloudman.root_url" . }}/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/authnz/custos/callback'
-      # tplValues get processed by the templating engine of the Cloudman helm chart
-      # The resulting map is then merged with the map of values below, and passed to the application's chart
-      tplValues:
+  install_templates:
+    projman:
+      repo: cloudve
+      chart: projman
+      display_name: Project Management Chart
+      context:
+        starting_dir: "/gvl"
+      template: |
+        projectName: "{{context.project.namespace}}"
+        data:
+          project:
+            name: "{{context.project.namespace}}-project-data"
+            storageClass: "rclone"
+            accessMode: "ReadWriteMany"
+            size: 50Gi
+            persistentVolume:
+              extraSpec:
+                csi:
+                  driver: csi-rclone
+                  volumeHandle: {{context.project.namespace}}-project-data-pv
+                  volumeAttributes:
+                    remotePathSuffix: "/projects/{{context.project.namespace}}"
+                    file-perms: "0777"
+                    links: "true"
+                    vfs-cache-mode: "full"
+          public:
+            name: "{{context.project.namespace}}-public-data"
+            storageClass: "rclone"
+            accessMode: "ReadWriteMany"
+            size: 50Gi
+            persistentVolume:
+              extraSpec:
+                csi:
+                  driver: csi-rclone
+                  volumeHandle: {{context.project.namespace}}-public-data-pv
+                  volumeAttributes:
+                    remotePathSuffix: "/public"
+                    file-perms: "0777"
+                    links: "true"
+                    vfs-cache-mode: "full"
         configs:
+          jupyter_notebook_config.py: |
+            c.NotebookApp.notebook_dir = '{{context.starting_dir}}'
+
+    galaxy:
+      repo: cloudve
+      chart: galaxy
+      display_name: Galaxy
+      summary: Galaxy is an open, web-based platform for biomedical research
+      description: |
+        <a href="https://galaxyproject.org/">Galaxy</a> is an open, web-based platform for
+        accessible, reproducible, and transparent computational biomedical research.
+      maintainers: Galaxy Team
+      info_url: https://galaxyproject.org/
+      icon_url: https://galaxyproject.org/images/galaxy-logos/galaxy_project_logo_square.png
+      context:
+        oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret}}'
+        domain: '{{ .Values.global.domain }}'
+        influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
+        influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
+        influxdb_username: '{{ .Values.influxdb.setDefaultUser.username }}'
+        influxdb_password: '{{ .Values.influxdb.setDefaultUser.password }}'
+      template: |
+        configs:
+          oidc_config.xml: |
+            <?xml version="1.0"?>
+            <OIDC>
+                <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
+                <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
+                <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
+            </OIDC>
           oidc_backends_config.xml: |
             <?xml version="1.0"?>
             <OIDC>
                 <provider name="custos">
-                    <url>{{ include "cloudman.root_url" . }}/auth</url>
-                    <client_id>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_id }}</client_id>
-                    <client_secret>{{ .Values.helmsman_config.charts.galaxy.oidc_client.client_secret }}</client_secret>
-                    <redirect_uri>{{ include "cloudman.root_url" . }}/{{ .Values.helmsman_config.charts.galaxy.values.ingress.path }}/authnz/custos/callback</redirect_uri>
-                    <realm>master</realm>
+                    <url>https://{{context.domain}}/auth</url>
+                    <client_id>galaxy-auth</client_id>
+                    <client_secret>{{context.oidc_client_secret}}</client_secret>
+                    <redirect_uri>https://{{context.domain}}/{{context.project.namespace}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
+                    <realm>master</realm>
                 </provider>
             </OIDC>
-        influxdb:
-          url: '{{ include "cloudman.influxdb_url_cluster" . }}'
-          database: '{{ include "cloudman.influxdb_database" . }}'
-          username: '{{ .Values.influxdb.setDefaultUser.username }}'
-          password: '{{ .Values.influxdb.setDefaultUser.password }}'
-      # Unlike tpl values, these values are not passed through the templating engine of the Cloudman helm chart
-      # i.e.: {{ .Values.postgresql.enabled }} in one of the values below will go as a string in the
-      # values.yml file passed to the child chart. If the application's chart passes the specific value through
-      # the tpl engine, it will be evaluated at that point from the resulting values for that chart, irrespective of the
-      # values in the Cloudman chart.
-      values:
-        image:
-          repository: galaxy/galaxy-k8s
-          tag: 20.01
-        configs:
           auth_conf.xml: |
               <auth>
               </auth>
@@ -67,22 +111,211 @@ helmsman_config:
               oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
               auth_config_file: /galaxy/server/config/auth_conf.xml
               require_login: true
-          oidc_config.xml: |
-            <?xml version="1.0"?>
-            <OIDC>
-                <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
-                <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
-                <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
-            </OIDC>
+              session_duration: 30
+        image:
+          repository: galaxy/galaxy-k8s
+          tag: 20.01
         persistence:
           storageClass: nfs
         postgresql:
+          postgresqlPassword: "{{ random_alphanumeric(10) }}"
+          postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
           persistence:
             storageClass: ebs
         ingress:
-          path: /initial/galaxy
+          enabled: true
+          annotations:
+             kubernetes.io/tls-acme: "true"
+             cert-manager.io/cluster-issuer: letsencrypt-prod
+             nginx.ingress.kubernetes.io/secure-backends: "true"
+          hosts:
+             - ~
+             - "{{context.domain}}"
+          tls:
+             - secretName: "{{context.domain | replace('.', '-') }}-key"
+               hosts:
+                 - "{{context.domain}}"
+          path: /{{ context.project.namespace }}/galaxy
 
-#    version:
+        extraVolumes:
+          - name: project-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-project-data-pvc"
+          - name: public-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-public-data-pvc"
+
+        extraVolumeMounts:
+          - name: project-data
+            mountPath: /gvl/projects/current
+          - name: public-data
+            mountPath: /gvl/public
+
+    jupyter:
+      repo: jupyterhub
+      chart: jupyterhub
+      display_name: Jupyter
+      summary: JupyterHub brings the power of notebooks to groups of users
+      description: |
+        <a href="https://jupyter.org/">JupyterHub</a> can be used to access your personal
+        <a href="http://ipython.org/notebook.html">IPython Notebook</a>.
+        IPython Notebook is a web-based interactive computational environment where you can
+        combine code execution, text, mathematics, plots and rich media into a single document.
+      maintainers: JupyterHub
+      info_url: https://jupyter.org/
+      icon_url: https://jupyter.org/assets/hublogo.svg
+      context:
+        oidc_client_id: '{{ .Values.oidc_clients.jupyterhub.client_id }}'
+        oidc_client_secret: '{{ .Values.oidc_clients.jupyterhub.client_secret }}'
+        domain: '{{ .Values.global.domain }}'
+      template: |
+        ingress:
+          enabled: true
+          path: "/{{ context.project.namespace}}/jupyterhub"
+          hosts:
+            - {{context.domain}}
+
+        auth:
+          type: custom
+          custom:
+            className: oauthenticator.generic.GenericOAuthenticator
+            config:
+              login_service: "keycloak"
+              client_id: "{{context.oidc_client_id}}"
+              client_secret: "{{context.oidc_client_secret}}"
+              token_url: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/token"
+              userdata_url: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/userinfo"
+              userdata_method: GET
+              username_key: preferred_username
+
+        hub:
+          baseUrl: "/{{ context.project.namespace}}/jupyterhub"
+          extraEnv:
+            - name: OAUTH2_AUTHORIZE_URL
+              value: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/auth"
+            - name: OAUTH2_TOKEN_URL
+              value: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/token"
+            - name: OAUTH_CALLBACK_URL
+              value: "https://{{context.domain}}/{{context.project.namespace}}/jupyterhub/hub/oauth_callback"
+
+        proxy:
+          secretToken: "{{random_alphanumeric(65)}}"
+
+        singleuser:
+          storage:
+            type: dynamic
+            dynamic:
+              storageClass: nfs
+              accessMode: ["ReadWriteMany"]
+              size: 10Gi
+            extraVolumes:
+              - name: project-data
+                persistentVolumeClaim:
+                  claimName: "{{context.project.namespace}}-project-data-pvc"
+              - name: public-data
+                persistentVolumeClaim:
+                  claimName: "{{context.project.namespace}}-public-data-pvc"
+              - name: notebook-conf
+                configMap:
+                  name: {{context.project.namespace}}-projman-configs
+                  items:
+                    - key: "jupyter_notebook_config.py"
+                      path: "jupyter_notebook_config.py"
+            extraVolumeMounts:
+              - name: project-data
+                mountPath: /gvl/projects/current
+              - name: public-data
+                mountPath: /gvl/public
+              - name: notebook-conf
+                mountPath: /etc/jupyter/
+
+    rstudio:
+      repo: cloudve
+      chart: rstudio
+      display_name: RStudio
+      summary: RStudio brings the power of R to users
+      description: |
+        <a href="https://rstudio.com//">RStudio</a> can be used to access your personal
+        RStudio environment.
+      context:
+        starting_dir: "/gvl/projects/current"
+        domain: '{{ .Values.global.domain }}'
+      template: |
+        ingress:
+          access_path: "/{{context.project.namespace}}/rstudio"
+          hosts:
+            - host: {{context.domain}}
+              paths:
+                - /{{context.project.namespace}}/rstudio(/|$)(.*)
+
+        extraVolumes:
+          - name: project-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-project-data-pvc"
+          - name: public-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-public-data-pvc"
+
+        extraVolumeMounts:
+          - name: project-data
+            mountPath: /gvl/projects/current
+          - name: public-data
+            mountPath: /gvl/public
+
+        persistence:
+          storageClass: nfs
+          size: 10Gi
+
+        mutableConfigs:
+          - fileName: user-settings
+            contents: |+
+              initialWorkingDirectory={{context.starting_dir}}
+              
+            subPath: ".rstudio/monitored/user-settings/"
+
+    terminalman:
+      repo: cloudve
+      chart: terminalman
+      display_name: Project Terminal
+      summary: TerminalMan brings the power of a terminal to users
+      context:
+        oidc_client_id: '{{ .Values.oidc_clients.terminalman.client_id }}'
+        oidc_client_secret: '{{ .Values.oidc_clients.terminalman.client_secret }}'
+        domain: '{{ .Values.global.domain }}'
+        starting_dir: "/gvl/projects/current"
+      template: |
+        oidc:
+          client_id: "terminalman"
+          client_secret: {{context.oidc_client_secret}}
+          discovery_url: https://{{context.domain}}/auth/realms/master
+        ingress:
+          hosts:
+            - host: {{context.domain}}
+              paths:
+                - /{{context.project.namespace}}/terminalman
+
+        proxyinjector:
+          nameOverride: {{context.project.namespace}}-terminalman-proxy
+
+        persistence:
+          enabled: false
+
+        extraVolumes:
+          - name: project-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-project-data-pvc"
+          - name: public-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-public-data-pvc"
+
+        extraVolumeMounts:
+          - name: project-data
+            mountPath: /gvl/projects/current
+          - name: public-data
+            mountPath: /gvl/public
+
+        initialWorkingDir: "{{context.starting_dir}}"
+
 
 # CloudMan bootstrap data
 cm_initial_cluster_data:
@@ -94,6 +327,25 @@ rancher_project_id:
 # Special global values which are accessible from all charts
 global:
     domain: 192.168.99.100
+
+oidc_clients:
+  galaxy:
+    client_id: 'galaxy-auth'
+    # The client secret is required if the client is not public
+    public_client: false
+    #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*'
+  terminalman:
+    client_id: 'terminalman'
+    #client_secret:
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*'
+  jupyterhub:
+    client_id: 'jupyterhub'
+    #client_secret:
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*'
 
 cloudlaunch:
   nameOverride: cloudman
