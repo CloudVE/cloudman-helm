@@ -187,7 +187,7 @@ helmsman_config:
                     <url>https://{{context.domain}}/auth</url>
                     <client_id>galaxy-auth</client_id>
                     <client_secret>{{context.oidc_client_secret}}</client_secret>
-                    <redirect_uri>https://{{context.domain}}/{{context.project.namespace}}/galaxy/authnz/custos/callback</redirect_uri>
+                    <redirect_uri>https://{{context.domain}}{{context.project.access_path}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
                     <realm>master</realm>
                 </provider>
@@ -228,7 +228,7 @@ helmsman_config:
              - secretName: "{{context.domain | replace('.', '-') }}-key"
                hosts:
                  - "{{context.domain}}"
-          path: /{{ context.project.namespace }}/galaxy
+          path: {{context.project.access_path}}/galaxy
 
         extraVolumes:
           - name: project-data
@@ -265,7 +265,7 @@ helmsman_config:
         ingress:
           access_path: "{{context.project.access_path}}/jupyterhub/oauth_login"
           enabled: true
-          path: "/{{ context.project.namespace}}/jupyterhub"
+          path: "{{ context.project.access_path}}/jupyterhub"
           hosts:
             - ~
             {%- if not (context.domain | ipaddr) %}
@@ -286,14 +286,14 @@ helmsman_config:
               username_key: preferred_username
 
         hub:
-          baseUrl: "/{{ context.project.namespace}}/jupyterhub"
+          baseUrl: "{{context.project.access_path}}/jupyterhub"
           extraEnv:
             - name: OAUTH2_AUTHORIZE_URL
               value: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/auth"
             - name: OAUTH2_TOKEN_URL
               value: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/token"
             - name: OAUTH_CALLBACK_URL
-              value: "https://{{context.domain}}/{{context.project.namespace}}/jupyterhub/hub/oauth_callback"
+              value: "https://{{context.domain}}{{context.project.access_path}}/jupyterhub/hub/oauth_callback"
 
         proxy:
           secretToken: "{{random_alphanumeric(65)}}"
@@ -339,7 +339,7 @@ helmsman_config:
         domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
-          access_path: "/{{context.project.namespace}}/rstudio/"
+          access_path: "{{context.project.access_path}}/rstudio"
           hosts:
             - host: ~
               paths:
@@ -347,7 +347,7 @@ helmsman_config:
             {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
-                - /{{context.project.namespace}}/rstudio(/|$)(.*)
+                - {{context.project.access_path}}/rstudio(/|$)(.*)
             {%- endif %}
 
         extraVolumes:
@@ -399,6 +399,7 @@ helmsman_config:
             - host: {{context.domain}}
               paths:
                 - /{{context.project.namespace}}/terminalman
+                - {{context.project.access_path}}/terminalman
             {%- endif %}
 
         proxyinjector:
