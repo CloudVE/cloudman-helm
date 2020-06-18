@@ -251,7 +251,7 @@ helmsman_config:
           hosts:
             - host: ~
               paths:
-                - /{{context.project.namespace}}/rstudio(/|$)(.*)
+                - {{context.project.access_path}}/rstudio(/|$)(.*)
             {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
