@@ -129,8 +129,10 @@ helmsman_config:
              cert-manager.io/cluster-issuer: letsencrypt-prod
              nginx.ingress.kubernetes.io/secure-backends: "true"
           hosts:
-             - ~
-             - "{{context.domain}}"
+            - ~
+            {%- if not (context.domain | ipaddr) %}
+            - "{{ context.domain }}"
+            {%- endif %}
           tls:
              - secretName: "{{context.domain | replace('.', '-') }}-key"
                hosts:
@@ -173,7 +175,10 @@ helmsman_config:
           enabled: true
           path: "/{{ context.project.namespace}}/jupyterhub"
           hosts:
-            - {{context.domain}}
+            - ~
+            {%- if not (context.domain | ipaddr) %}
+            - "{{ context.domain }}"
+            {%- endif %}
 
         auth:
           type: custom
@@ -244,9 +249,14 @@ helmsman_config:
         ingress:
           access_path: "/{{context.project.namespace}}/rstudio"
           hosts:
+            - host: ~
+              paths:
+                - /{{context.project.namespace}}/rstudio(/|$)(.*)
+            {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
                 - /{{context.project.namespace}}/rstudio(/|$)(.*)
+            {%- endif %}
 
         extraVolumes:
           - name: project-data
@@ -290,9 +300,14 @@ helmsman_config:
           discovery_url: https://{{context.domain}}/auth/realms/master
         ingress:
           hosts:
+            - host: ~
+              paths:
+                - /{{context.project.namespace}}/terminalman
+            {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
                 - /{{context.project.namespace}}/terminalman
+            {%- endif %}
 
         proxyinjector:
           nameOverride: {{context.project.namespace}}-terminalman-proxy
