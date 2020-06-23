@@ -74,7 +74,8 @@ helmsman_config:
       info_url: https://galaxyproject.org/
       icon_url: https://galaxyproject.org/images/galaxy-logos/galaxy_project_logo_square.png
       context:
-        oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret}}'
+        oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret }}'
+        oidc_client_id: '{{ .Values.oidc_clients.galaxy.client_id }}'
         domain: '{{ .Values.global.domain }}'
         influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
         influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
@@ -94,7 +95,7 @@ helmsman_config:
             <OIDC>
                 <provider name="custos">
                     <url>https://{{context.domain}}/auth</url>
-                    <client_id>galaxy-auth</client_id>
+                    <client_id>{{context.oidc_client_id}}</client_id>
                     <client_secret>{{context.oidc_client_secret}}</client_secret>
                     <redirect_uri>https://{{context.domain}}/{{context.project.namespace}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
