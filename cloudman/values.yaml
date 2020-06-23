@@ -62,6 +62,90 @@ helmsman_config:
           jupyter_notebook_config.py: |
             c.NotebookApp.notebook_dir = '{{context.starting_dir}}'
 
+    nextcloud:
+      repo: cloudve
+      chart: nextcloud
+      display_name: File Management (NextCloud)
+      context:
+        oidc_client_secret: '{{.Values.oidc_clients.nextcloud.client_secret}}'
+        oidc_client_id: '{{ .Values.oidc_clients.nextcloud.client_id}}'
+        domain: '{{ .Values.global.domain }}'
+      template: |
+        ingress:
+          enabled: true
+          access_path: "/{{context.project.access_path}}/nextcloud"
+          hosts:
+            - name: {{context.domain}}
+              path: /{{context.project.access_path}}/nextcloud
+
+        nextcloud:
+          configs:
+            path.config.php: |
+              <?php
+              $CONFIG = array (
+                'overwriteprotocol' => 'https',
+                'overwritewebroot' => '{{context.project.access_path}}/nextcloud',
+                'overwritehost'     => '{{context.domain}}',
+                'overwrite.cli.url' => 'https://{{context.domain}}/{{context.project.access_path}}/nextcloud',
+                'skeletondirectory' => '',
+                'allow_user_to_change_display_name' => false,
+                'lost_password_link' => 'disabled',
+                'oidc_login_default_quota' => 1000000000,
+                'oidc_login_client_id' => '{{context.oidc_client_id}}',
+                'oidc_login_client_secret' => '{{context.oidc_client_secret}}',
+                'oidc_login_provider_url' => 'https://{{context.domain}}/auth/realms/master',
+                'oidc_login_logout_url' => 'https://{{context.domain}}/auth/realms/master/protocol/openid-connect/logout?redirect_uri=https%3A%2F%2F{{context.domain}}%2F{{context.project.access_path}}%2Fnextcloud%2F',
+                'oidc_login_scope' => 'openid profile',
+                'oidc_login_auto_redirect' => true,
+                'oidc_login_redir_fallback' => true,
+                'oidc_login_use_external_storage' => true,
+                'oidc_login_disable_registration' => false,
+                'oidc_login_attributes' => array(
+                  'id' => 'preferred_username',
+                  'mail' => 'email',
+                ),
+              );
+
+          host: "{{context.domain}}"
+          extraVolumes:
+            - name: project-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-project-data-pvc"
+            - name: public-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-public-data-pvc"
+
+
+          extraVolumeMounts:
+            - name: project-data
+              mountPath: /mnt/data/project
+            - name: public-data
+              mountPath: /mnt/data/public
+
+        persistence:
+          enabled: false
+
+        lifecycle:
+          postStartCommand:
+            - su
+            - www-data
+            - -s
+            - /bin/bash
+            - -c
+            - > 
+              PATH=/var/www/html:$PATH;
+              occ app:update --all;
+              occ upgrade;
+              occ app:enable files_external;
+              occ app:disable photos;
+              occ app:install oidc_login;
+              occ app:install external;
+              occ files_external:create -c "datadir=/mnt/data/public" public local null::null;
+              occ files_external:create -c "datadir=/mnt/data/project" project local null::null;
+              occ config:app:set --value yes files_external allow_user_mounting;
+              occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
+      
+
     galaxy:
       repo: cloudve
       chart: galaxy
