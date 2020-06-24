@@ -94,6 +94,7 @@ helmsman_config:
                 'overwritehost'     => '{{context.domain}}',
                 'overwrite.cli.url' => 'https://{{context.domain}}/{{context.project.access_path}}/nextcloud',
                 'filesystem_check_changes' => 1,
+                'check_data_directory_permissions' => false,
                 'skeletondirectory' => '',
                 'allow_user_to_change_display_name' => false,
                 'lost_password_link' => 'disabled',
