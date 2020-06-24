@@ -59,6 +59,22 @@ helmsman_config:
                     file-perms: "0777"
                     links: "true"
                     vfs-cache-mode: "full"
+          icons:
+            name: "{{context.project.namespace}}-icons"
+            storageClass: "rclone"
+            accessMode: "ReadWriteMany"
+            size: 50Gi
+            persistentVolume:
+              extraSpec:
+                csi:
+                  driver: csi-rclone
+                  volumeHandle: {{context.project.namespace}}-icons-pv
+                  volumeAttributes:
+                    remotePath: "gvl-icons"
+                    remotePathSuffix: ""
+                    file-perms: "0777"
+                    links: "true"
+                    vfs-cache-mode: "full"
         configs:
           jupyter_notebook_config.py: |
             c.NotebookApp.notebook_dir = '{{context.starting_dir}}'
@@ -122,6 +138,9 @@ helmsman_config:
             - name: public-data
               persistentVolumeClaim:
                 claimName: "{{context.project.namespace}}-public-data-pvc"
+            - name: icons-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-icons-pvc"
 
 
           extraVolumeMounts:
@@ -129,6 +148,8 @@ helmsman_config:
               mountPath: /gvl/projects/current
             - name: public-data
               mountPath: /gvl/public
+            - name: icons-data
+              mountPath: /mnt/icons
 
         persistence:
           enabled: false
