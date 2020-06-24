@@ -143,7 +143,7 @@ helmsman_config:
               occ files_external:create -c "datadir=/gvl" "/" local null::null;
               occ config:app:set --value yes files_external allow_user_mounting;
               occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
-
+              occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}/{{context.project.access_path}}/rstudio","rstudio-icon.svg"],["Terminal","https://{{context.domain}}/{{context.project.access_path}}/terminalman","terminal-icon.svg"],["JupyterHub","https://{{context.domain}}/{{context.project.access_path}}/jupyterhub/oauth_login","jupyter-icon.svg"],["Galaxy","https://{{context.domain}}/{{context.project.access_path}}/galaxy","galaxy-icon.svg"]]';
 
     galaxy:
       repo: cloudve
