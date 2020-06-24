@@ -74,12 +74,14 @@ helmsman_config:
       info_url: https://galaxyproject.org/
       icon_url: https://galaxyproject.org/images/galaxy-logos/galaxy_project_logo_square.png
       context:
-        oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret}}'
+        oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret }}'
+        oidc_client_id: '{{ .Values.oidc_clients.galaxy.client_id }}'
         domain: '{{ .Values.global.domain }}'
         influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
         influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
         influxdb_username: '{{ .Values.influxdb.setDefaultUser.username }}'
         influxdb_password: '{{ .Values.influxdb.setDefaultUser.password }}'
+        admin_users: cloudman@someplace.org
       template: |
         configs:
           oidc_config.xml: |
@@ -94,7 +96,7 @@ helmsman_config:
             <OIDC>
                 <provider name="custos">
                     <url>https://{{context.domain}}/auth</url>
-                    <client_id>galaxy-auth</client_id>
+                    <client_id>{{context.oidc_client_id}}</client_id>
                     <client_secret>{{context.oidc_client_secret}}</client_secret>
                     <redirect_uri>https://{{context.domain}}/{{context.project.namespace}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
@@ -106,6 +108,10 @@ helmsman_config:
               </auth>
           galaxy.yml:
             galaxy:
+              library_import_dir: /gvl
+              user_library_import_dir: /gvl
+              admin_users: {{context.admin_users}}
+              allow_path_paste: true
               enable_oidc: true
               oidc_config_file: /galaxy/server/config/oidc_config.xml
               oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
