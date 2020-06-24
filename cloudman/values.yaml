@@ -92,9 +92,14 @@ helmsman_config:
           enabled: true
           access_path: "{{context.project.access_path}}/nextcloud/"
           hosts:
-            - host: '{{context.domain}}'
+            - host: ~
               paths:
-                - /{{context.project.namespace}}/nextcloud(/|$)(.*)
+                - {{context.project.access_path}}/nextcloud(/|$)(.*)
+            {%- if not (context.domain | ipaddr) %}
+            - host: {{context.domain}}
+              paths:
+                - {{context.project.access_path}}/nextcloud(/|$)(.*)
+            {%- endif %}
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "10G"
             nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
