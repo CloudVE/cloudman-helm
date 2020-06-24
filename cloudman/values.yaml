@@ -141,7 +141,7 @@ helmsman_config:
               occ app:disable photos;
               occ app:install oidc_login;
               occ app:install external;
-              ooc files_external:import /mnt/icons/files_external.json;
+              occ files_external:import /mnt/icons/files_external.json;
               occ config:app:set --value yes files_external allow_user_mounting;
               occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
               occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}/{{context.project.access_path}}/rstudio","rstudio-icon.svg"],["Terminal","https://{{context.domain}}/{{context.project.access_path}}/terminalman","terminal-icon.svg"],["JupyterHub","https://{{context.domain}}/{{context.project.access_path}}/jupyterhub/oauth_login","jupyter-icon.svg"],["Galaxy","https://{{context.domain}}/{{context.project.access_path}}/galaxy","galaxy-icon.svg"]]';
