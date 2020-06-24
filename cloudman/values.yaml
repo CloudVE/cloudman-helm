@@ -415,7 +415,6 @@ helmsman_config:
             {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
-                - /{{context.project.namespace}}/terminalman
                 - {{context.project.access_path}}/terminalman
             {%- endif %}
 
