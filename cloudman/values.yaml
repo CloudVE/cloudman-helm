@@ -140,10 +140,10 @@ helmsman_config:
               occ app:disable photos;
               occ app:install oidc_login;
               occ app:install external;
-              occ files_external:create -c "datadir=/gvl" gvl local null::null;
+              occ files_external:create -c "datadir=/" gvl local null::null;
               occ config:app:set --value yes files_external allow_user_mounting;
               occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
-      
+
 
     galaxy:
       repo: cloudve
