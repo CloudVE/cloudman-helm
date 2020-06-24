@@ -107,6 +107,10 @@ helmsman_config:
               </auth>
           galaxy.yml:
             galaxy:
+              library_import_dir: /gvl
+              user_library_import_dir: /gvl
+              admin_users: cloudman@someplace.org
+              allow_path_paste: true
               enable_oidc: true
               oidc_config_file: /galaxy/server/config/oidc_config.xml
               oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
