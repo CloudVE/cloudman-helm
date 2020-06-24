@@ -82,7 +82,7 @@ helmsman_config:
     nextcloud:
       repo: cloudve
       chart: nextcloud
-      display_name: File Browser (NextCloud)
+      display_name: Data Browser (NextCloud)
       context:
         oidc_client_secret: '{{.Values.oidc_clients.nextcloud.client_secret}}'
         oidc_client_id: '{{ .Values.oidc_clients.nextcloud.client_id}}'
