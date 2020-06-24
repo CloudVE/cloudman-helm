@@ -87,6 +87,7 @@ helmsman_config:
                 'overwritewebroot' => '{{context.project.access_path}}/nextcloud',
                 'overwritehost'     => '{{context.domain}}',
                 'overwrite.cli.url' => 'https://{{context.domain}}/{{context.project.access_path}}/nextcloud',
+                'filesystem_check_changes' => 1,
                 'skeletondirectory' => '',
                 'allow_user_to_change_display_name' => false,
                 'lost_password_link' => 'disabled',
@@ -140,10 +141,11 @@ helmsman_config:
               occ app:disable photos;
               occ app:install oidc_login;
               occ app:install external;
-              occ files_external:create -c "datadir=/gvl" "/" local null::null;
+              ooc files_external:import /mnt/icons/files_external.json;
               occ config:app:set --value yes files_external allow_user_mounting;
               occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
               occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}/{{context.project.access_path}}/rstudio","rstudio-icon.svg"],["Terminal","https://{{context.domain}}/{{context.project.access_path}}/terminalman","terminal-icon.svg"],["JupyterHub","https://{{context.domain}}/{{context.project.access_path}}/jupyterhub/oauth_login","jupyter-icon.svg"],["Galaxy","https://{{context.domain}}/{{context.project.access_path}}/galaxy","galaxy-icon.svg"]]';
+              echo /var/www/html/data/appdata_*/external/img | xargs -n 1 cp /mnt/icons/*.svg;
 
     galaxy:
       repo: cloudve
