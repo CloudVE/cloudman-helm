@@ -22,7 +22,8 @@ helmsman_config:
     projman:
       repo: cloudve
       chart: projman
-      display_name: Project Management Chart
+      display_name: Project Management
+      summary: For internal use only
       context:
         starting_dir: "/gvl"
       template: |
@@ -157,13 +158,18 @@ helmsman_config:
       repo: cloudve
       chart: galaxy
       display_name: Galaxy
-      summary: Galaxy is an open, web-based platform for biomedical research
+      summary: |
+        Perform repeatable, interactive analysis using a graphical tool interface, choosing from popular
+        tools and workflows, aided by online training material and collaboration.
       description: |
         <a href="https://galaxyproject.org/">Galaxy</a> is an open, web-based platform for
-        accessible, reproducible, and transparent computational biomedical research.
+        accessible, reproducible, and transparent computational biomedical research. Perform repeatable, interactive
+        analysis using a graphical tool interface, choosing from popular tools and workflows, aided by online training
+        material and collaboration.
       maintainers: Galaxy Team
       info_url: https://galaxyproject.org/
       icon_url: https://galaxyproject.org/images/galaxy-logos/galaxy_project_logo_square.png
+      screenshot_url: assets/images/screenshot_galaxy.png
       context:
         oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret}}'
         domain: '{{ .Values.global.domain }}'
@@ -248,7 +254,7 @@ helmsman_config:
       repo: jupyterhub
       chart: jupyterhub
       display_name: Jupyter
-      summary: JupyterHub brings the power of notebooks to groups of users
+      summary: Mix code with text in an interactive shell using Python and Markdown.
       description: |
         <a href="https://jupyter.org/">JupyterHub</a> can be used to access your personal
         <a href="http://ipython.org/notebook.html">IPython Notebook</a>.
@@ -257,6 +263,7 @@ helmsman_config:
       maintainers: JupyterHub
       info_url: https://jupyter.org/
       icon_url: https://jupyter.org/assets/hublogo.svg
+      screenshot_url: assets/images/screenshot_jupyter.png
       context:
         oidc_client_id: '{{ .Values.oidc_clients.jupyterhub.client_id }}'
         oidc_client_secret: '{{ .Values.oidc_clients.jupyterhub.client_secret }}'
@@ -330,10 +337,16 @@ helmsman_config:
       repo: cloudve
       chart: rstudio
       display_name: RStudio
-      summary: RStudio brings the power of R to users
+      summary: |
+        Use advanced statistical and visualization packages from Bioconductor through a powerful RStudio interface.
       description: |
         <a href="https://rstudio.com//">RStudio</a> can be used to access your personal
-        RStudio environment.
+        RStudio environment. Use advanced statistical and visualization packages from Bioconductor through the powerful
+        RStudio interface.
+      maintainers: RStudio Inc.
+      info_url: https://rstudio.com/
+      icon_url: https://www.r-project.org/Rlogo.png
+      screenshot_url: assets/images/screenshot_rstudio.png
       context:
         starting_dir: "/gvl/projects/current"
         domain: '{{ .Values.global.domain }}'
@@ -380,6 +393,10 @@ helmsman_config:
       chart: terminalman
       display_name: Project Terminal
       summary: TerminalMan brings the power of a terminal to users
+      maintainers: Gnu Project
+      info_url: https://www.gnu.org/software/bash/
+      icon_url: https://upload.wikimedia.org/wikipedia/commons/8/82/Gnu-bash-logo.svg
+      screenshot_url: assets/images/screenshot_terminal.png
       context:
         oidc_client_id: '{{ .Values.oidc_clients.terminalman.client_id }}'
         oidc_client_secret: '{{ .Values.oidc_clients.terminalman.client_secret }}'
