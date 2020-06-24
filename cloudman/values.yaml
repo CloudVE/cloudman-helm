@@ -73,10 +73,15 @@ helmsman_config:
       template: |
         ingress:
           enabled: true
-          access_path: "/{{context.project.access_path}}/nextcloud"
+          access_path: "/{{context.project.namespace}}/nextcloud"
           hosts:
-            - name: {{context.domain}}
-              path: /{{context.project.access_path}}/nextcloud
+            - host: {{context.domain}}
+              paths:
+                - /{{context.project.namespace}}/nextcloud(/|$)(.*)
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: "10G"
+            nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+            nginx.ingress.kubernetes.io/rewrite-target: "/$2"
 
         nextcloud:
           configs:
