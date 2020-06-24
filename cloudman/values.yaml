@@ -393,12 +393,17 @@ helmsman_config:
           - name: public-data
             persistentVolumeClaim:
               claimName: "{{context.project.namespace}}-public-data-pvc"
+          - name: icons-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-icons-pvc"
 
         extraVolumeMounts:
           - name: project-data
             mountPath: /gvl/projects/current
           - name: public-data
             mountPath: /gvl/public
+          - name: icons-data
+            mountPath: /etc/rstudio
 
         persistence:
           storageClass: nfs
