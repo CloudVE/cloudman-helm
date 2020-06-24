@@ -256,6 +256,7 @@ helmsman_config:
         domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
+          access_path: "{{context.project.access_path}}/jupyterhub/oauth_login"
           enabled: true
           path: "/{{ context.project.namespace}}/jupyterhub"
           hosts:
@@ -331,7 +332,7 @@ helmsman_config:
         domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
-          access_path: "/{{context.project.namespace}}/rstudio"
+          access_path: "/{{context.project.namespace}}/rstudio/"
           hosts:
             - host: ~
               paths:
