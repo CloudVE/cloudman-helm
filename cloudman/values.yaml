@@ -73,7 +73,7 @@ helmsman_config:
       template: |
         ingress:
           enabled: true
-          access_path: "/{{context.project.namespace}}/nextcloud"
+          access_path: "{{context.project.access_path}}/nextcloud/"
           hosts:
             - host: '{{context.domain}}'
               paths:
