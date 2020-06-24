@@ -445,6 +445,16 @@ oidc_clients:
     #client_secret:
     redirect_uris:
       - '{{ include "cloudman.root_url" . }}/*'
+  rstudio:
+    client_id: 'rstudio'
+    #client_secret:
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*'
+  nextcloud:
+    client_id: 'nextcloud'
+    #client_secret:
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*'
 
 cloudlaunch:
   nameOverride: cloudman
