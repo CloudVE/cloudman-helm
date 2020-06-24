@@ -81,6 +81,7 @@ helmsman_config:
         influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
         influxdb_username: '{{ .Values.influxdb.setDefaultUser.username }}'
         influxdb_password: '{{ .Values.influxdb.setDefaultUser.password }}'
+        admin_users: cloudman@someplace.org
       template: |
         configs:
           oidc_config.xml: |
@@ -109,7 +110,7 @@ helmsman_config:
             galaxy:
               library_import_dir: /gvl
               user_library_import_dir: /gvl
-              admin_users: cloudman@someplace.org
+              admin_users: {{context.admin_users}}
               allow_path_paste: true
               enable_oidc: true
               oidc_config_file: /galaxy/server/config/oidc_config.xml
