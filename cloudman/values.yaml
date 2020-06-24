@@ -59,9 +59,127 @@ helmsman_config:
                     file-perms: "0777"
                     links: "true"
                     vfs-cache-mode: "full"
+          icons:
+            name: "{{context.project.namespace}}-icons"
+            storageClass: "rclone"
+            accessMode: "ReadWriteMany"
+            size: 50Gi
+            persistentVolume:
+              extraSpec:
+                csi:
+                  driver: csi-rclone
+                  volumeHandle: {{context.project.namespace}}-icons-pv
+                  volumeAttributes:
+                    remotePath: "gvl-icons"
+                    remotePathSuffix: ""
+                    file-perms: "0777"
+                    links: "true"
+                    vfs-cache-mode: "full"
         configs:
           jupyter_notebook_config.py: |
             c.NotebookApp.notebook_dir = '{{context.starting_dir}}'
+
+    nextcloud:
+      repo: cloudve
+      chart: nextcloud
+      display_name: Data Browser (NextCloud)
+      context:
+        oidc_client_secret: '{{.Values.oidc_clients.nextcloud.client_secret}}'
+        oidc_client_id: '{{ .Values.oidc_clients.nextcloud.client_id}}'
+        domain: '{{ .Values.global.domain }}'
+      template: |
+        ingress:
+          enabled: true
+          access_path: "{{context.project.access_path}}/nextcloud/"
+          hosts:
+            - host: ~
+              paths:
+                - {{context.project.access_path}}/nextcloud(/|$)(.*)
+            {%- if not (context.domain | ipaddr) %}
+            - host: {{context.domain}}
+              paths:
+                - {{context.project.access_path}}/nextcloud(/|$)(.*)
+            {%- endif %}
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: "10G"
+            nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+            nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+
+        nextcloud:
+          configs:
+            path.config.php: |
+              <?php
+              $CONFIG = array (
+                'overwriteprotocol' => 'https',
+                'overwritewebroot' => '{{context.project.access_path}}/nextcloud',
+                'overwritehost'     => '{{context.domain}}',
+                'overwrite.cli.url' => 'https://{{context.domain}}/{{context.project.access_path}}/nextcloud',
+                'filesystem_check_changes' => 1,
+                'check_data_directory_permissions' => false,
+                'skeletondirectory' => '',
+                'allow_user_to_change_display_name' => false,
+                'lost_password_link' => 'disabled',
+                'oidc_login_default_quota' => 1000000000,
+                'oidc_login_client_id' => '{{context.oidc_client_id}}',
+                'oidc_login_client_secret' => '{{context.oidc_client_secret}}',
+                'oidc_login_provider_url' => 'https://{{context.domain}}/auth/realms/master',
+                'oidc_login_logout_url' => 'https://{{context.domain}}/auth/realms/master/protocol/openid-connect/logout?redirect_uri=https%3A%2F%2F{{context.domain}}%2F{{context.project.access_path}}%2Fnextcloud%2F',
+                'oidc_login_scope' => 'openid profile',
+                'oidc_login_auto_redirect' => true,
+                'oidc_login_redir_fallback' => true,
+                'oidc_login_use_external_storage' => true,
+                'oidc_login_disable_registration' => false,
+                'oidc_login_attributes' => array(
+                  'id' => 'preferred_username',
+                  'mail' => 'email',
+                ),
+              );
+
+          host: "{{context.domain}}"
+          extraVolumes:
+            - name: project-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-project-data-pvc"
+            - name: public-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-public-data-pvc"
+            - name: icons-data
+              persistentVolumeClaim:
+                claimName: "{{context.project.namespace}}-icons-pvc"
+
+
+          extraVolumeMounts:
+            - name: project-data
+              mountPath: /gvl/projects/current
+            - name: public-data
+              mountPath: /gvl/public
+            - name: icons-data
+              mountPath: /mnt/icons
+
+        persistence:
+          enabled: false
+
+        lifecycle:
+          postStartCommand:
+            - su
+            - www-data
+            - -s
+            - /bin/bash
+            - -c
+            - > 
+              PATH=/var/www/html:$PATH;
+              INSTANCE=$(occ config:system:get instanceid)
+              occ app:update --all;
+              occ upgrade;
+              occ app:enable files_external;
+              occ app:disable photos;
+              occ app:install oidc_login;
+              occ app:install external;
+              occ files_external:import /mnt/icons/files_external.json;
+              occ config:app:set --value yes files_external allow_user_mounting;
+              occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
+              mkdir -p "/var/www/html/data/appdata_$INSTANCE/external/icons";
+              cp /mnt/icons/*.png "/var/www/html/data/appdata_$INSTANCE/external/icons" && occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}{{context.project.access_path}}/rstudio/","rstudio.png"],["Terminal","https://{{context.domain}}{{context.project.access_path}}/terminalman/","terminal.png"],["JupyterHub","https://{{context.domain}}{{context.project.access_path}}/jupyterhub/oauth_login","jupyter.png"],["Galaxy","https://{{context.domain}}{{context.project.access_path}}/galaxy/","galaxy.png"],["Data Libraries","https://{{context.domain}}{{context.project.access_path}}/galaxy/library/list","galaxy.png"],["Workflows","https://{{context.domain}}/{{context.project.access_path}}/galaxy/workflows/list","galaxy.png"],["Data Libraries","https://{{context.domain}}/{{context.project.access_path}}/galaxy/library/list","galaxy.png"],["Published Histories","https://{{context.domain}}/{{context.project.access_path}}/galaxy/histories/list_published","galaxy.png"],["Published Workflows","https://{{context.domain}}/{{context.project.access_path}}/galaxy/workflows/list_published","galaxy.png"]]';
 
     galaxy:
       repo: cloudve
@@ -80,12 +198,14 @@ helmsman_config:
       icon_url: https://galaxyproject.org/images/galaxy-logos/galaxy_project_logo_square.png
       screenshot_url: assets/images/screenshot_galaxy.png
       context:
-        oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret}}'
+        oidc_client_secret: '{{ .Values.oidc_clients.galaxy.client_secret }}'
+        oidc_client_id: '{{ .Values.oidc_clients.galaxy.client_id }}'
         domain: '{{ .Values.global.domain }}'
         influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
         influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
         influxdb_username: '{{ .Values.influxdb.setDefaultUser.username }}'
         influxdb_password: '{{ .Values.influxdb.setDefaultUser.password }}'
+        admin_users: cloudman@someplace.org
       template: |
         configs:
           oidc_config.xml: |
@@ -100,7 +220,7 @@ helmsman_config:
             <OIDC>
                 <provider name="custos">
                     <url>https://{{context.domain}}/auth</url>
-                    <client_id>galaxy-auth</client_id>
+                    <client_id>{{context.oidc_client_id}}</client_id>
                     <client_secret>{{context.oidc_client_secret}}</client_secret>
                     <redirect_uri>https://{{context.domain}}{{context.project.access_path}}/galaxy/authnz/custos/callback</redirect_uri>
                     <enable_idp_logout>true</enable_idp_logout>
@@ -112,6 +232,10 @@ helmsman_config:
               </auth>
           galaxy.yml:
             galaxy:
+              library_import_dir: /gvl
+              user_library_import_dir: /gvl
+              admin_users: {{context.admin_users}}
+              allow_path_paste: true
               enable_oidc: true
               oidc_config_file: /galaxy/server/config/oidc_config.xml
               oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
@@ -135,8 +259,10 @@ helmsman_config:
              cert-manager.io/cluster-issuer: letsencrypt-prod
              nginx.ingress.kubernetes.io/secure-backends: "true"
           hosts:
-             - ~
-             - "{{context.domain}}"
+            - ~
+            {%- if not (context.domain | ipaddr) %}
+            - "{{ context.domain }}"
+            {%- endif %}
           tls:
              - secretName: "{{context.domain | replace('.', '-') }}-key"
                hosts:
@@ -177,10 +303,14 @@ helmsman_config:
         domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
+          access_path: "{{context.project.access_path}}/jupyterhub/oauth_login"
           enabled: true
           path: "{{ context.project.access_path}}/jupyterhub"
           hosts:
-            - {{context.domain}}
+            - ~
+            {%- if not (context.domain | ipaddr) %}
+            - "{{ context.domain }}"
+            {%- endif %}
 
         auth:
           type: custom
@@ -257,9 +387,14 @@ helmsman_config:
         ingress:
           access_path: "{{context.project.access_path}}/rstudio"
           hosts:
+            - host: ~
+              paths:
+                - {{context.project.access_path}}/rstudio(/|$)(.*)
+            {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
                 - {{context.project.access_path}}/rstudio(/|$)(.*)
+            {%- endif %}
 
         extraVolumes:
           - name: project-data
@@ -268,12 +403,17 @@ helmsman_config:
           - name: public-data
             persistentVolumeClaim:
               claimName: "{{context.project.namespace}}-public-data-pvc"
+          - name: icons-data
+            persistentVolumeClaim:
+              claimName: "{{context.project.namespace}}-icons-pvc"
 
         extraVolumeMounts:
           - name: project-data
             mountPath: /gvl/projects/current
           - name: public-data
             mountPath: /gvl/public
+          - name: icons-data
+            mountPath: /etc/rstudio
 
         persistence:
           storageClass: nfs
@@ -307,9 +447,14 @@ helmsman_config:
           discovery_url: https://{{context.domain}}/auth/realms/master
         ingress:
           hosts:
+            - host: ~
+              paths:
+                - {{context.project.access_path}}/terminalman
+            {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
                 - {{context.project.access_path}}/terminalman
+            {%- endif %}
 
         proxyinjector:
           nameOverride: {{context.project.namespace}}-terminalman-proxy
@@ -360,6 +505,11 @@ oidc_clients:
       - '{{ include "cloudman.root_url" . }}/*'
   jupyterhub:
     client_id: 'jupyterhub'
+    #client_secret:
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*'
+  nextcloud:
+    client_id: 'nextcloud'
     #client_secret:
     redirect_uris:
       - '{{ include "cloudman.root_url" . }}/*'
