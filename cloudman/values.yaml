@@ -26,7 +26,7 @@ helmsman_config:
       chart: nextcloud
       display_name: Data Browser
       summary: Upload your data and connect external storage through Nextcloud.
-      icon_url: "https://commons.wikimedia.org/wiki/File:Nextcloud_Logo.svg"
+      icon_url: "https://upload.wikimedia.org/wikipedia/commons/6/60/Nextcloud_Logo.svg"
       screenshot_url: assets/images/screenshot_nextcloud.png
       context:
         oidc_client_secret: '{{ .Values.oidc_clients.nextcloud.client_secret }}'
