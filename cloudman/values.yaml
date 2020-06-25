@@ -18,75 +18,19 @@ helmsman_config:
        url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
      - name: jupyterhub
        url: https://jupyterhub.github.io/helm-chart/
+     - name: alex
+       url: https://raw.githubusercontent.com/almahmoud/helm-charts/webdav/
   install_templates:
     projman:
-      repo: cloudve
-      chart: projman
+      repo: alex
+      chart: nextcloud
       display_name: Project Management
       summary: For internal use only
       context:
-        starting_dir: "/gvl"
-      template: |
-        projectName: "{{context.project.namespace}}"
-        data:
-          project:
-            name: "{{context.project.namespace}}-project-data"
-            storageClass: "rclone"
-            accessMode: "ReadWriteMany"
-            size: 50Gi
-            persistentVolume:
-              extraSpec:
-                csi:
-                  driver: csi-rclone
-                  volumeHandle: {{context.project.namespace}}-project-data-pv
-                  volumeAttributes:
-                    remotePathSuffix: "/projects/{{context.project.namespace}}"
-                    file-perms: "0777"
-                    links: "true"
-                    vfs-cache-mode: "full"
-          public:
-            name: "{{context.project.namespace}}-public-data"
-            storageClass: "rclone"
-            accessMode: "ReadWriteMany"
-            size: 50Gi
-            persistentVolume:
-              extraSpec:
-                csi:
-                  driver: csi-rclone
-                  volumeHandle: {{context.project.namespace}}-public-data-pv
-                  volumeAttributes:
-                    remotePathSuffix: "/public"
-                    file-perms: "0777"
-                    links: "true"
-                    vfs-cache-mode: "full"
-          icons:
-            name: "{{context.project.namespace}}-icons"
-            storageClass: "rclone"
-            accessMode: "ReadWriteMany"
-            size: 50Gi
-            persistentVolume:
-              extraSpec:
-                csi:
-                  driver: csi-rclone
-                  volumeHandle: {{context.project.namespace}}-icons-pv
-                  volumeAttributes:
-                    remotePath: "gvl-icons"
-                    remotePathSuffix: ""
-                    file-perms: "0777"
-                    links: "true"
-                    vfs-cache-mode: "full"
-        configs:
-          jupyter_notebook_config.py: |
-            c.NotebookApp.notebook_dir = '{{context.starting_dir}}'
-
-    nextcloud:
-      repo: cloudve
-      chart: nextcloud
-      display_name: Data Browser (NextCloud)
-      context:
-        oidc_client_secret: '{{.Values.oidc_clients.nextcloud.client_secret}}'
-        oidc_client_id: '{{ .Values.oidc_clients.nextcloud.client_id}}'
+        oidc_client_secret: '{{ .Values.oidc_clients.nextcloud.client_secret }}'
+        oidc_client_id: '{{ .Values.oidc_clients.nextcloud.client_id }}'
         domain: '{{ .Values.global.domain }}'
+        starting_dir: '/gvl'
       template: |
         ingress:
           enabled: true
@@ -108,6 +52,7 @@ helmsman_config:
               <?php
               $CONFIG = array (
                 'overwriteprotocol' => 'https',
+                'theme' => 'galaxy',
                 'overwritewebroot' => '{{context.project.access_path}}/nextcloud',
                 'overwritehost'     => '{{context.domain}}',
                 'overwrite.cli.url' => 'https://{{context.domain}}/{{context.project.access_path}}/nextcloud',
@@ -134,9 +79,6 @@ helmsman_config:
 
           host: "{{context.domain}}"
           extraVolumes:
-            - name: project-data
-              persistentVolumeClaim:
-                claimName: "{{context.project.namespace}}-project-data-pvc"
             - name: public-data
               persistentVolumeClaim:
                 claimName: "{{context.project.namespace}}-public-data-pvc"
@@ -146,8 +88,6 @@ helmsman_config:
 
 
           extraVolumeMounts:
-            - name: project-data
-              mountPath: /gvl/projects/current
             - name: public-data
               mountPath: /gvl/public
             - name: icons-data
@@ -165,17 +105,82 @@ helmsman_config:
             - -c
             - > 
               PATH=/var/www/html:$PATH;
-              INSTANCE=$(occ config:system:get instanceid)
               occ app:update --all;
               occ upgrade;
               occ app:enable files_external;
               occ app:disable photos;
+              occ app:disable theming;
+              occ app:disable gallery;
               occ app:install oidc_login;
               occ app:install external;
               occ config:app:set --value yes files_external allow_user_mounting;
               occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
-              occ files_external:create -c "datadir=/gvl" gvl local null::null;
+              occ maintenance:theme:update;
+              occ files_external:create -c "datadir=/gvl/public" public local null::null;
               mkdir -p "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons" && cp /var/www/html/themes/galaxy/gxy-extras/*.svg "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons" && occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}{{context.project.access_path}}/rstudio/","rstudio-icon.svg"],["Terminal","https://{{context.domain}}{{context.project.access_path}}/terminalman/","terminal-icon.svg"],["JupyterHub","https://{{context.domain}}{{context.project.access_path}}/jupyterhub/oauth_login","jupyter-icon.svg"],["Galaxy","https://{{context.domain}}{{context.project.access_path}}/galaxy/","galaxy-icon.svg"],["Data Libraries","https://{{context.domain}}{{context.project.access_path}}/galaxy/library/list","galaxy-icon.svg"],["Workflows","https://{{context.domain}}{{context.project.access_path}}/galaxy/workflows/list","galaxy-icon.svg"],["Data Libraries","https://{{context.domain}}{{context.project.access_path}}/galaxy/library/list","galaxy-icon.svg"],["Published Histories","https://{{context.domain}}{{context.project.access_path}}/galaxy/histories/list_published","galaxy-icon.svg"],["Published Workflows","https://{{context.domain}}{{context.project.access_path}}/galaxy/workflows/list_published","galaxy-icon.svg"]]';
+
+        projman:
+          projectName: "{{context.project.namespace}}"
+          data:
+            project:
+              name: "{{context.project.namespace}}-project-data"
+              storageClass: "rclone"
+              accessMode: "ReadWriteMany"
+              size: 50Gi
+              persistentVolume:
+                extraSpec:
+                  csi:
+                    driver: csi-rclone
+                    volumeHandle: {{context.project.namespace}}-project-data-pv
+                    volumeAttributes:
+                      remote: 'webdav'
+                      remotePath: "/"
+                      remotePathSuffix: ""
+                      webdav-url: https://webdavtry.cloudve.org/{{context.project.namespace}}/nextcloud/remote.php/webdav/
+                      webdav-vendor: 'nextcloud'
+                      webdav-user: admin
+                      webdav-pass: 'wLUUvHw3Y3lmc9DaVjD7gJS8GxkS2_Yf'
+                      file-perms: "0777"
+                      links: "true"
+                      vfs-cache-mode: "full"
+            public:
+              name: "{{context.project.namespace}}-public-data"
+              storageClass: "rclone"
+              accessMode: "ReadWriteMany"
+              size: 50Gi
+              persistentVolume:
+                extraSpec:
+                  csi:
+                    driver: csi-rclone
+                    volumeHandle: {{context.project.namespace}}-public-data-pv
+                    volumeAttributes:
+                      remotePathSuffix: "/public"
+                      file-perms: "0777"
+                      links: "true"
+                      vfs-cache-mode: "full"
+            icons:
+              name: "{{context.project.namespace}}-icons"
+              storageClass: "rclone"
+              accessMode: "ReadWriteMany"
+              size: 50Gi
+              persistentVolume:
+                extraSpec:
+                  csi:
+                    driver: csi-rclone
+                    volumeHandle: {{context.project.namespace}}-icons-pv
+                    volumeAttributes:
+                      remotePath: "gvl-icons"
+                      remotePathSuffix: ""
+                      file-perms: "0777"
+                      links: "true"
+                      vfs-cache-mode: "full"
+          configs:
+            jupyter_notebook_config.py: |
+              c.NotebookApp.notebook_dir = '{{context.starting_dir}}'
+            rserver.conf: |
+              rsession-which-r=/usr/local/bin/R
+              auth-none=1
+              www-frame-origin={{context.domain}}
     galaxy:
       repo: cloudve
       chart: galaxy
@@ -265,18 +270,13 @@ helmsman_config:
           path: {{context.project.access_path}}/galaxy
 
         extraVolumes:
-          - name: project-data
+          - name: webdav-data
             persistentVolumeClaim:
               claimName: "{{context.project.namespace}}-project-data-pvc"
-          - name: public-data
-            persistentVolumeClaim:
-              claimName: "{{context.project.namespace}}-public-data-pvc"
 
         extraVolumeMounts:
-          - name: project-data
-            mountPath: /gvl/projects/current
-          - name: public-data
-            mountPath: /gvl/public
+          - name: webdav-data
+            mountPath: /gvl
 
     jupyter:
       repo: jupyterhub
@@ -344,9 +344,6 @@ helmsman_config:
               - name: project-data
                 persistentVolumeClaim:
                   claimName: "{{context.project.namespace}}-project-data-pvc"
-              - name: public-data
-                persistentVolumeClaim:
-                  claimName: "{{context.project.namespace}}-public-data-pvc"
               - name: notebook-conf
                 configMap:
                   name: {{context.project.namespace}}-projman-configs
@@ -355,9 +352,7 @@ helmsman_config:
                       path: "jupyter_notebook_config.py"
             extraVolumeMounts:
               - name: project-data
-                mountPath: /gvl/projects/current
-              - name: public-data
-                mountPath: /gvl/public
+                mountPath: /gvl
               - name: notebook-conf
                 mountPath: /etc/jupyter/
 
@@ -395,19 +390,17 @@ helmsman_config:
           - name: project-data
             persistentVolumeClaim:
               claimName: "{{context.project.namespace}}-project-data-pvc"
-          - name: public-data
-            persistentVolumeClaim:
-              claimName: "{{context.project.namespace}}-public-data-pvc"
-          - name: icons-data
-            persistentVolumeClaim:
-              claimName: "{{context.project.namespace}}-icons-pvc"
+          - name: rstudio-conf
+            configMap:
+              name: {{context.project.namespace}}-projman-configs
+              items:
+                - key: "rserver.conf"
+                  path: "rserver.conf"
 
         extraVolumeMounts:
           - name: project-data
-            mountPath: /gvl/projects/current
-          - name: public-data
-            mountPath: /gvl/public
-          - name: icons-data
+            mountPath: /gvl
+          - name: rstudio-conf
             mountPath: /etc/rstudio
 
         persistence:
@@ -418,7 +411,7 @@ helmsman_config:
           - fileName: user-settings
             contents: |+
               initialWorkingDirectory={{context.starting_dir}}
-              
+
             subPath: ".rstudio/monitored/user-settings/"
 
     terminalman:
@@ -441,10 +434,11 @@ helmsman_config:
           client_secret: {{context.oidc_client_secret}}
           discovery_url: https://{{context.domain}}/auth/realms/master
         ingress:
+          access_path: {{context.project.access_path}}/terminalman/
           hosts:
             - host: ~
               paths:
-                - {{context.project.access_path}}/terminalman/
+                - {{context.project.access_path}}/terminalman
             {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
@@ -458,21 +452,15 @@ helmsman_config:
           enabled: false
 
         extraVolumes:
-          - name: project-data
+          - name: webdav-data
             persistentVolumeClaim:
               claimName: "{{context.project.namespace}}-project-data-pvc"
-          - name: public-data
-            persistentVolumeClaim:
-              claimName: "{{context.project.namespace}}-public-data-pvc"
 
         extraVolumeMounts:
-          - name: project-data
-            mountPath: /gvl/projects/current
-          - name: public-data
-            mountPath: /gvl/public
+          - name: webdav-data
+            mountPath: "/gvl"
 
         initialWorkingDir: "{{context.starting_dir}}"
-
 
 # CloudMan bootstrap data
 cm_initial_cluster_data:
