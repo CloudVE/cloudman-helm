@@ -92,11 +92,8 @@ helmsman_config:
           enabled: true
           access_path: "{{context.project.access_path}}/nextcloud/"
           hosts:
-            - host: ~
-              paths:
-                - {{context.project.access_path}}/nextcloud(/|$)(.*)
             {%- if not (context.domain | ipaddr) %}
-            - host: {{context.domain}}
+            - host: '{{context.domain}}'
               paths:
                 - {{context.project.access_path}}/nextcloud(/|$)(.*)
             {%- endif %}
@@ -154,7 +151,7 @@ helmsman_config:
             - name: public-data
               mountPath: /gvl/public
             - name: icons-data
-              mountPath: /mnt/icons
+              mountPath: /var/www/html/themes/galaxy
 
         persistence:
           enabled: false
@@ -175,12 +172,10 @@ helmsman_config:
               occ app:disable photos;
               occ app:install oidc_login;
               occ app:install external;
-              occ files_external:import /mnt/icons/files_external.json;
               occ config:app:set --value yes files_external allow_user_mounting;
               occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
-              mkdir -p "/var/www/html/data/appdata_$INSTANCE/external/icons";
-              cp /mnt/icons/*.png "/var/www/html/data/appdata_$INSTANCE/external/icons" && occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}{{context.project.access_path}}/rstudio/","rstudio.png"],["Terminal","https://{{context.domain}}{{context.project.access_path}}/terminalman/","terminal.png"],["JupyterHub","https://{{context.domain}}{{context.project.access_path}}/jupyterhub/oauth_login","jupyter.png"],["Galaxy","https://{{context.domain}}{{context.project.access_path}}/galaxy/","galaxy.png"],["Data Libraries","https://{{context.domain}}{{context.project.access_path}}/galaxy/library/list","galaxy.png"],["Workflows","https://{{context.domain}}/{{context.project.access_path}}/galaxy/workflows/list","galaxy.png"],["Data Libraries","https://{{context.domain}}/{{context.project.access_path}}/galaxy/library/list","galaxy.png"],["Published Histories","https://{{context.domain}}/{{context.project.access_path}}/galaxy/histories/list_published","galaxy.png"],["Published Workflows","https://{{context.domain}}/{{context.project.access_path}}/galaxy/workflows/list_published","galaxy.png"]]';
-
+              occ files_external:create -c "datadir=/gvl" gvl local null::null;
+              mkdir -p "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons" && cp /var/www/html/themes/galaxy/gxy-extras/*.svg "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons" && occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}{{context.project.access_path}}/rstudio/","rstudio-icon.svg"],["Terminal","https://{{context.domain}}{{context.project.access_path}}/terminalman/","terminal-icon.svg"],["JupyterHub","https://{{context.domain}}{{context.project.access_path}}/jupyterhub/oauth_login","jupyter-icon.svg"],["Galaxy","https://{{context.domain}}{{context.project.access_path}}/galaxy/","galaxy-icon.svg"],["Data Libraries","https://{{context.domain}}{{context.project.access_path}}/galaxy/library/list","galaxy-icon.svg"],["Workflows","https://{{context.domain}}{{context.project.access_path}}/galaxy/workflows/list","galaxy-icon.svg"],["Data Libraries","https://{{context.domain}}{{context.project.access_path}}/galaxy/library/list","galaxy-icon.svg"],["Published Histories","https://{{context.domain}}{{context.project.access_path}}/galaxy/histories/list_published","galaxy-icon.svg"],["Published Workflows","https://{{context.domain}}{{context.project.access_path}}/galaxy/workflows/list_published","galaxy-icon.svg"]]';
     galaxy:
       repo: cloudve
       chart: galaxy
@@ -385,7 +380,7 @@ helmsman_config:
         domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
-          access_path: "{{context.project.access_path}}/rstudio"
+          access_path: "{{context.project.access_path}}/rstudio/"
           hosts:
             - host: ~
               paths:
@@ -449,7 +444,7 @@ helmsman_config:
           hosts:
             - host: ~
               paths:
-                - {{context.project.access_path}}/terminalman
+                - {{context.project.access_path}}/terminalman/
             {%- if not (context.domain | ipaddr) %}
             - host: {{context.domain}}
               paths:
