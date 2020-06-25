@@ -131,7 +131,7 @@ helmsman_config:
                 extraSpec:
                   csi:
                     driver: csi-rclone
-                    volumeHandle: {{context.project.namespace}}-nextcloud-data-pv
+                    volumeHandle: {{context.project.namespace}}-project-data-pv
                     volumeAttributes:
                       remote: 'webdav'
                       remotePath: "/"
