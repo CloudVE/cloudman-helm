@@ -25,7 +25,7 @@ helmsman_config:
       repo: alex
       chart: nextcloud
       display_name: Data Browser
-      summary: Upload and browse the data you want to process through nextcloud.
+      summary: Upload your data and connect external storage through Nextcloud.
       icon_url: "https://commons.wikimedia.org/wiki/File:Nextcloud_Logo.svg"
       screenshot_url: assets/images/screenshot_nextcloud.png
       context:
