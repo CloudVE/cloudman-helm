@@ -137,7 +137,7 @@ helmsman_config:
                       remote: 'webdav'
                       remotePath: "/"
                       remotePathSuffix: ""
-                      webdav-url: https://webdavtry.cloudve.org/{{context.project.namespace}}/nextcloud/remote.php/webdav/
+                      webdav-url: https://{{context.domain}}/{{context.project.namespace}}/nextcloud/remote.php/webdav/
                       webdav-vendor: 'nextcloud'
                       webdav-user: admin
                       webdav-pass: 'wLUUvHw3Y3lmc9DaVjD7gJS8GxkS2_Yf'
