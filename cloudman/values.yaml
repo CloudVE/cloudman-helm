@@ -24,8 +24,9 @@ helmsman_config:
     projman:
       repo: alex
       chart: nextcloud
-      display_name: Project Management
-      summary: For internal use only
+      display_name: Data Browser
+      summary: Upload and browse the data you want to process through nextcloud.
+      icon_url: "https://commons.wikimedia.org/wiki/File:Nextcloud_Logo.svg"
       screenshot_url: assets/images/screenshot_nextcloud.png
       context:
         oidc_client_secret: '{{ .Values.oidc_clients.nextcloud.client_secret }}'
