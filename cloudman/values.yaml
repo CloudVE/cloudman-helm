@@ -26,6 +26,7 @@ helmsman_config:
       chart: nextcloud
       display_name: Project Management
       summary: For internal use only
+      screenshot_url: assets/images/screenshot_nextcloud.png
       context:
         oidc_client_secret: '{{ .Values.oidc_clients.nextcloud.client_secret }}'
         oidc_client_id: '{{ .Values.oidc_clients.nextcloud.client_id }}'
@@ -371,7 +372,7 @@ helmsman_config:
       icon_url: https://www.r-project.org/Rlogo.png
       screenshot_url: assets/images/screenshot_rstudio.png
       context:
-        starting_dir: "/gvl/projects/current"
+        starting_dir: "/gvl"
         domain: '{{ .Values.global.domain }}'
       template: |
         ingress:
