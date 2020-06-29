@@ -14,3 +14,5 @@ jobs:
           charts-repo: msafadieh/helm-charts
           github-token: ${{ secrets.GITHUB_TOKEN }}
           chart-token: ${{ secrets.CHART_TOKEN }}
+          github-context: ${{ toJson(github) }}
+          git-branch: ${{ github.event.pull_request.base.ref }}
