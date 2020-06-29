@@ -12,5 +12,5 @@ jobs:
         with:
           chart-name: projman
           charts-repo: msafadieh/helm-charts
-          github-token: {{ secrets.GITHUB_TOKEN }}
-          chart-token: {{ secrets.CHART_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          chart-token: ${{ secrets.CHART_TOKEN }}
