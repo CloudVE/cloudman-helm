@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@master
       - uses: msafadieh/helm-ci@master
         with:
-          chart-name: projman
+          chart-name: cloudman
           charts-repo: msafadieh/helm-charts
           github-token: ${{ secrets.GITHUB_TOKEN }}
           chart-token: ${{ secrets.CHART_TOKEN }}
