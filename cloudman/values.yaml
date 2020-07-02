@@ -63,7 +63,7 @@ helmsman_config:
                 'skeletondirectory' => '',
                 'allow_user_to_change_display_name' => false,
                 'lost_password_link' => 'disabled',
-                'oidc_login_default_quota' => 1000000000,
+                'oidc_login_default_quota' => 100000000000,
                 'oidc_login_client_id' => '{{context.oidc_client_id}}',
                 'oidc_login_client_secret' => '{{context.oidc_client_secret}}',
                 'oidc_login_provider_url' => 'https://{{context.domain}}/auth/realms/master',
