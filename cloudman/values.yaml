@@ -117,9 +117,9 @@ helmsman_config:
               occ app:install external;
               occ config:app:set --value yes files_external allow_user_mounting;
               occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends;
-              occ maintenance:theme:update;
               occ files_external:create -c "datadir=/gvl/public" public local null::null;
               if [ -d "/var/www/html/themes/galaxy/gxy-extras" ]; then
+                occ maintenance:theme:update;
                 mkdir -p "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons" && cp /var/www/html/themes/galaxy/gxy-extras/*.svg "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons";
               fi;
               occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}{{context.project.access_path}}/rstudio/","rstudio-icon.svg"],["Terminal","https://{{context.domain}}{{context.project.access_path}}/terminalman/","terminal-icon.svg"],["JupyterHub","https://{{context.domain}}{{context.project.access_path}}/jupyterhub/oauth_login","jupyter-icon.svg"],["Galaxy","https://{{context.domain}}{{context.project.access_path}}/galaxy/","galaxy-icon.svg"],["Data Libraries","https://{{context.domain}}{{context.project.access_path}}/galaxy/library/list","galaxy-icon.svg"],["Workflows","https://{{context.domain}}{{context.project.access_path}}/galaxy/workflows/list","galaxy-icon.svg"],["Data Libraries","https://{{context.domain}}{{context.project.access_path}}/galaxy/library/list","galaxy-icon.svg"],["Published Histories","https://{{context.domain}}{{context.project.access_path}}/galaxy/histories/list_published","galaxy-icon.svg"],["Published Workflows","https://{{context.domain}}{{context.project.access_path}}/galaxy/workflows/list_published","galaxy-icon.svg"]]';
