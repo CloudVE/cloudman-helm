@@ -283,6 +283,12 @@ helmsman_config:
           - name: webdav-data
             mountPath: /gvl
 
+        influxdb:
+          enabled: true
+          url: "{{context.influxdb_url}}"
+          username: "{{context.influxdb_username}}"
+          password: "{{context.influxdb_password}}"
+
     jupyter:
       repo: jupyterhub
       chart: jupyterhub
