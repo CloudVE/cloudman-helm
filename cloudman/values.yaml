@@ -1040,7 +1040,7 @@ helmsman_config:
         starting_dir: "/gvl"
       template: |
         oidc:
-          client_id: "terminalman"
+          client_id: "{{context.oidc_client_id}}"
           client_secret: {{context.oidc_client_secret}}
           discovery_url: https://{{context.domain}}/auth/realms/master
         ingress:
