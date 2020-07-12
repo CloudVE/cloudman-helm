@@ -981,8 +981,8 @@ helmsman_config:
       icon_url: https://www.r-project.org/Rlogo.png
       screenshot_url: assets/images/screenshot_rstudio.png
       context:
-        oidc_client_id: '{{ .Values.oidc_clients.rstudio.client_id }}'
-        oidc_client_secret: '{{ .Values.oidc_clients.rstudio.client_secret }}'
+        oidc_client_id: '{{ .Values.oidc_clients.gatekeeper.client_id }}'
+        oidc_client_secret: '{{ .Values.oidc_clients.gatekeeper.client_secret }}'
         starting_dir: "/gvl"
         domain: '{{ .Values.global.domain }}'
       template: |
@@ -1045,8 +1045,8 @@ helmsman_config:
       icon_url: https://upload.wikimedia.org/wikipedia/commons/8/82/Gnu-bash-logo.svg
       screenshot_url: assets/images/screenshot_terminal.png
       context:
-        oidc_client_id: '{{ .Values.oidc_clients.terminalman.client_id }}'
-        oidc_client_secret: '{{ .Values.oidc_clients.terminalman.client_secret }}'
+        oidc_client_id: '{{ .Values.oidc_clients.gatekeeper.client_id }}'
+        oidc_client_secret: '{{ .Values.oidc_clients.gatekeeper.client_secret }}'
         domain: '{{ .Values.global.domain }}'
         starting_dir: "/gvl"
       template: |
@@ -1104,13 +1104,8 @@ oidc_clients:
     #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
     redirect_uris:
       - '{{ include "cloudman.root_url" . }}/*'
-  rstudio:
-    client_id: 'rstudio'
-    #client_secret:
-    redirect_uris:
-      - '{{ include "cloudman.root_url" . }}/*'
-  terminalman:
-    client_id: 'terminalman'
+  gatekeeper:
+    client_id: 'gatekeeper'
     #client_secret:
     redirect_uris:
       - '{{ include "cloudman.root_url" . }}/*'
