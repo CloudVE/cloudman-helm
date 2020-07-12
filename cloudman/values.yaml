@@ -976,9 +976,15 @@ helmsman_config:
       icon_url: https://www.r-project.org/Rlogo.png
       screenshot_url: assets/images/screenshot_rstudio.png
       context:
+        oidc_client_id: '{{ .Values.oidc_clients.rstudio.client_id }}'
+        oidc_client_secret: '{{ .Values.oidc_clients.rstudio.client_secret }}'
         starting_dir: "/gvl"
         domain: '{{ .Values.global.domain }}'
       template: |
+        oidc:
+          client_id: "{{context.oidc_client_id}}"
+          client_secret: {{context.oidc_client_secret}}
+          discovery_url: https://{{context.domain}}/auth/realms/master
         ingress:
           access_path: "{{context.project.access_path}}/rstudio/"
           hosts:
@@ -1094,6 +1100,11 @@ oidc_clients:
     # The client secret is required if the client is not public
     public_client: false
     #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
+    redirect_uris:
+      - '{{ include "cloudman.root_url" . }}/*'
+  rstudio:
+    client_id: 'rstudio'
+    #client_secret:
     redirect_uris:
       - '{{ include "cloudman.root_url" . }}/*'
   terminalman:
