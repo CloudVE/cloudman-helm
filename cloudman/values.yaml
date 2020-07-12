@@ -26,6 +26,11 @@ helmsman_config:
        url: https://jupyterhub.github.io/helm-chart/
      - name: alex
        url: https://raw.githubusercontent.com/almahmoud/helm-charts/nextclouddev/
+  charts:
+    proxyinjector:
+      name: cloudve/proxyinjector
+      namespace: cloudman
+      create_namespace: false
   install_templates:
     projman:
       repo: alex
@@ -1060,9 +1065,6 @@ helmsman_config:
               paths:
                 - {{context.project.access_path}}/terminalman
             {%- endif %}
-
-        proxyinjector:
-          nameOverride: {{context.project.namespace}}-terminalman-proxy
 
         persistence:
           enabled: false
