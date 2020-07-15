@@ -1088,29 +1088,33 @@ rancher_project_id:
 global:
     domain: 192.168.99.100
 
-oidc_clients:
-  galaxy:
-    client_id: 'galaxy-auth'
-    # The client secret is required if the client is not public
-    public_client: false
-    #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
-    redirect_uris:
-      - '{{ include "cloudman.root_url" . }}/*'
-  terminalman:
-    client_id: 'terminalman'
-    #client_secret:
-    redirect_uris:
-      - '{{ include "cloudman.root_url" . }}/*'
-  jupyterhub:
-    client_id: 'jupyterhub'
-    #client_secret:
-    redirect_uris:
-      - '{{ include "cloudman.root_url" . }}/*'
-  nextcloud:
-    client_id: 'nextcloud'
-    #client_secret:
-    redirect_uris:
-      - '{{ include "cloudman.root_url" . }}/*'
+# This feature can be used to force the creation of OIDC clients
+# with the cloudman deployment. However, projman-helm will now handles
+# the client creation for the standard project isolation
+oidc_clients: {}
+  # galaxy:
+  #   client_id: 'galaxy-auth'
+  #   # The client secret is required if the client is not public
+  #   public_client: false
+  #   #client_secret: 'cf84xfps-npm5-hvmb-ntui4grybqrh'
+  #   redirect_uris:
+  #     - '{{ include "cloudman.root_url" . }}/*'
+  # terminalman:
+  #   client_id: 'terminalman'
+  #   #client_secret:
+  #   redirect_uris:
+  #     - '{{ include "cloudman.root_url" . }}/*'
+  # jupyterhub:
+  #   client_id: 'jupyterhub'
+  #   #client_secret:
+  #   redirect_uris:
+  #     - '{{ include "cloudman.root_url" . }}/*'
+  # nextcloud:
+  #   client_id: 'nextcloud'
+  #   #client_secret:
+  #   redirect_uris:
+  #     - '{{ include "cloudman.root_url" . }}/*'
+
 
 cloudlaunch:
   nameOverride: cloudman
@@ -1217,6 +1221,8 @@ keycloak:
   userRegistration:
     enabled: false
   keycloak:
+    extraArgs: >
+      -Dkeycloak.profile.feature.scripts=enabled
     username: admin
     # password: changeMe
     existingSecret: "{{ .Release.Name }}-keycloak-http"

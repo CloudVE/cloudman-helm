@@ -54,6 +54,77 @@ else
       echo "The admin user already had an email address."
 fi
 
+# Add browser with client restriction JS authenticator script
+curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/browser/copy -d "{\"newName\":\"BrowserFlowWithRoleRestrictions\"}"
+
+# Add JS script
+curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions/execution -d "{\"provider\": \"auth-script-based\"}"
+
+# Get current flows and make Script required
+flows=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions | jq -r '.[] | select(.displayName=="Script") | .requirement = "REQUIRED"')
+
+scriptid=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions | jq -r '.[] | select(.displayName=="Script") | .id')
+
+# PUT the new flows with Script required
+curl -X PUT -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions -d "$flows"
+
+authscript=$(cat <<EOF
+// modfied version of https://stackoverflow.com/a/57271777
+AuthenticationFlowError = Java.type("org.keycloak.authentication.AuthenticationFlowError");
+
+ function authenticate(context) {
+    var username = user ? user.username : "anonymous";
+
+    var client = session.getContext().getClient();
+    var MANDATORY_ROLE = client.getClientId();
+    LOG.warn("Checking access to authentication for client '" + client.getClientId() + "' through mandatory role '" + MANDATORY_ROLE + "' for user '" + username + "'");
+    
+    // It requires the role to be assigned to the client as well
+    var mandatoryRole = client.getRole(MANDATORY_ROLE);
+
+    if (user.hasRole(mandatoryRole)) {
+        LOG.info("Successful authentication for user '" + username + "' with mandatory role '" + MANDATORY_ROLE + "' for client '" + client.getClientId() + "'");
+        return context.success();
+    }
+
+    LOG.info("Denied authentication for user '" + username + "' without mandatory role '" + MANDATORY_ROLE + "' for client '" + client.getClientId() + "'");
+    return denyAccess(context, mandatoryRole);
+ }
+
+ // TODO fix the returning page
+ function denyAccess(context, mandatoryRole) {
+    var formBuilder = context.form();
+    var client = session.getContext().getClient();
+    var description = !mandatoryRole.getAttribute('deniedMessage').isEmpty() ? mandatoryRole.getAttribute('deniedMessage') : [''];
+    var form = formBuilder
+        .setAttribute('clientUrl', client.getRootUrl())
+        .setAttribute('clientName', client.getName())
+        .setAttribute('description', description[0])
+        .createForm('denied-auth.ftl');
+    return context.failure(AuthenticationFlowError.INVALID_USER, form);
+ }
+EOF
+)
+
+authconfig=$(cat <<EOF
+{
+   "id":"$scriptid",
+   "alias":"clientRoles",
+   "config":{
+      "scriptName":"clientRoles",
+      "scriptCode":"placeholder"
+   }
+}
+EOF
+)
+
+authconfig=$(echo $authconfig | jq --arg authscript "$authscript" '.config.scriptCode = $authscript')
+
+# Change name and add code to the created Script execution step
+curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" "{{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/executions/$scriptid/config" -d "$authconfig"
+
+flowid=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows | jq -r '.[] | select(.alias=="BrowserFlowWithRoleRestrictions") | .id')
+
 cloudman_client=$(curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/clients | \
 jq -r '.[] | select(.clientId=="cloudman")')
 
@@ -207,6 +278,10 @@ then
     "clientId": {{ $client_id | quote }},
     "enabled": true,
     "clientAuthenticatorType": "client-secret",
+    "authenticationFlowBindingOverrides":
+    {
+      "browser": "$flowid"
+    },
     "redirectUris": [{{ $redirect_uris }}],
     {{- if $client.public_client }}
     "publicClient": true,
