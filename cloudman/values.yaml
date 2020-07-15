@@ -75,6 +75,11 @@ helmsman_config:
             nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
             nginx.ingress.kubernetes.io/rewrite-target: "/$2"
 
+
+        persistence:
+          enabled: true
+          storageClass: "ebs"
+
         nextcloud:
           configs:
             path.config.php: |
@@ -217,6 +222,7 @@ helmsman_config:
 
           jobs:
             keycloak:
+              containers:
               - name: "{{context.project.namespace}}-keycloak-projman-job"
                 image: "gempesaw/curl-jq"
                 command: ["/bin/sh", "/kc-init/update_keycloak.sh"]
@@ -226,7 +232,7 @@ helmsman_config:
                     readOnly: true
                 env:
                   - name: CLIENT_ID
-                    value: "{{context.project.namespace}}"
+                    value: "{{context.project.oidc_client_id}}"
                   - name: KEYCLOAK_HTTP_PASSWORD
                     value: "{{context.keycloak_password}}"
                   - name: REDIRECT_URIS
@@ -235,16 +241,16 @@ helmsman_config:
                     valueFrom:
                       secretKeyRef:
                         name: "{{context.project.namespace}}-projman-secrets"
-                        key: client-secret
+                        key: oidc-client-secret
                   - name: KC_URL
                     value: "https://{{context.domain}}/auth"
-                volumes:
-                  - name: kc-init
-                    configmap:
-                      name: {{context.project.namespace}}-projman-configs
-                      items:
-                        - key: "update_keycloak.sh"
-                          path: "update_keycloak.sh"
+              volumes:
+                - name: kc-init
+                  configMap:
+                    name: {{context.project.namespace}}-projman-configs
+                    items:
+                      - key: "update_keycloak.sh"
+                        path: "update_keycloak.sh"
 
           configs:
             jupyter_notebook_config.py: |
@@ -1352,12 +1358,11 @@ keycloak:
   userRegistration:
     enabled: false
   keycloak:
-    extraArgs: >
-      -Dkeycloak.profile.feature.scripts=enabled
-    username: admin
+    extraArgs: "-Dkeycloak.profile.feature.scripts=enabled"
+    username: "admin"
     # password: changeMe
     existingSecret: "{{ .Release.Name }}-keycloak-http"
-    existingSecretKey: password
+    existingSecretKey: "password"
     ingress:
       enabled: true
       # Add a null host to default to IP
@@ -1366,14 +1371,14 @@ keycloak:
       path: /auth
     persistence:
       deployPostgres: false
-      dbVendor: postgres
-      dbName: keycloak
+      dbVendor: "postgres"
+      dbName: "keycloak"
       dbPort: 5432
-      dbUser: keycloak
+      dbUser: "keycloak"
       # Will randomly generate if not specified
       # dbPassword: changeMe
       existingSecret: "{{ .Release.Name }}-postgres-keycloak-password"
-      existingSecretKey: postgres-keycloak-password
+      existingSecretKey: "postgres-keycloak-password"
     # Specifying address directly through extraEnv since `dbHost` is not run through tpl
     extraEnv: |
       - name: DB_ADDR
