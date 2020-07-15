@@ -69,8 +69,8 @@ scriptid=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorizati
 curl -X PUT -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions -d "$flows"
 
 authscript=$(cat <<EOF
-// modfied version of https://stackoverflow.com/a/57271777
-AuthenticationFlowError = Java.type("org.keycloak.authentication.AuthenticationFlowError");
+ // modfied version of https://stackoverflow.com/a/57271777
+ AuthenticationFlowError = Java.type("org.keycloak.authentication.AuthenticationFlowError");
 
  function authenticate(context) {
     var username = user ? user.username : "anonymous";
@@ -91,7 +91,7 @@ AuthenticationFlowError = Java.type("org.keycloak.authentication.AuthenticationF
     return denyAccess(context, mandatoryRole);
  }
 
- // TODO fix the returning page
+ // TODO: fix the returning page
  function denyAccess(context, mandatoryRole) {
     var formBuilder = context.form();
     var client = session.getContext().getClient();
