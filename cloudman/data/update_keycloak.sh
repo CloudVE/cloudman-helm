@@ -25,8 +25,18 @@ fi
 # Add User Registration to 'master' realm
 curl -k -X PUT -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master -d '{"registrationAllowed": {{.Values.keycloak.userRegistration.enabled}}, "registrationEmailAsUsername": true, "loginWithEmailAllowed": true, "duplicateEmailsAllowed": false}'
 
-# Add superuser role
-curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/roles -d '{"name":"superuser"}'
+# Get superuser role
+super_role=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/roles | \
+                   jq -r '.[] | select(.name=="superuser") | .id')
+
+if [ -z "$super_role" ]
+then
+       # Add superuser role
+       curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/roles -d '{"name":"superuser"}'
+else
+      echo "The superuser role already exists."
+fi
+
 
 # Get superuser role ID
 role_id=$(curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/roles | jq -r '.[] | select(.name=="superuser") | .id')
@@ -54,21 +64,28 @@ else
       echo "The admin user already had an email address."
 fi
 
-# Add browser with client restriction JS authenticator script
-curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/browser/copy -d "{\"newName\":\"BrowserFlowWithRoleRestrictions\"}"
 
-# Add JS script
-curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions/execution -d "{\"provider\": \"auth-script-based\"}"
+# Get superuser role
+existing_flow=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows | jq -r '.[] | select(.alias=="BrowserFlowWithRoleRestrictions") | .id')
 
-# Get current flows and make Script required
-flows=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions | jq -r '.[] | select(.displayName=="Script") | .requirement = "REQUIRED"')
+if [ -z "$existing_flow" ]
+then
+       
+       # Add browser with client restriction JS authenticator script
+       curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/browser/copy -d "{\"newName\":\"BrowserFlowWithRoleRestrictions\"}"
 
-scriptid=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions | jq -r '.[] | select(.displayName=="Script") | .id')
+       # Add JS script
+       curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions/execution -d "{\"provider\": \"auth-script-based\"}"
 
-# PUT the new flows with Script required
-curl -X PUT -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions -d "$flows"
+       # Get current flows and make Script required
+       flows=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions | jq -r '.[] | select(.displayName=="Script") | .requirement = "REQUIRED"')
 
-authscript=$(cat <<EOF
+       scriptid=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions | jq -r '.[] | select(.displayName=="Script") | .id')
+
+       # PUT the new flows with Script required
+       curl -X PUT -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows/BrowserFlowWithRoleRestrictions/executions -d "$flows"
+
+       authscript=$(cat <<EOF
  // modfied version of https://stackoverflow.com/a/57271777
  AuthenticationFlowError = Java.type("org.keycloak.authentication.AuthenticationFlowError");
 
@@ -104,9 +121,9 @@ authscript=$(cat <<EOF
     return context.failure(AuthenticationFlowError.INVALID_USER, form);
  }
 EOF
-)
+       )
 
-authconfig=$(cat <<EOF
+       authconfig=$(cat <<EOF
 {
    "id":"$scriptid",
    "alias":"clientRoles",
@@ -116,12 +133,17 @@ authconfig=$(cat <<EOF
    }
 }
 EOF
-)
+       )
 
-authconfig=$(echo $authconfig | jq --arg authscript "$authscript" '.config.scriptCode = $authscript')
+       authconfig=$(echo $authconfig | jq --arg authscript "$authscript" '.config.scriptCode = $authscript')
 
-# Change name and add code to the created Script execution step
-curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" "{{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/executions/$scriptid/config" -d "$authconfig"
+       # Change name and add code to the created Script execution step
+       curl -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" "{{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/executions/$scriptid/config" -d "$authconfig"
+
+else
+      echo "The 'BrowserFlowWithRoleRestrictions' flow already exists."
+fi
+
 
 flowid=$(curl -X GET -k -s -H "Content-Type: application/json" -H "Authorization: bearer $token" {{ include "cloudman.root_url" . }}/auth/admin/realms/master/authentication/flows | jq -r '.[] | select(.alias=="BrowserFlowWithRoleRestrictions") | .id')
 
