@@ -948,7 +948,7 @@ helmsman_config:
             <?xml version="1.0"?>
             <OIDC>
                 <provider name="keycloak">
-                    <url>https://{{context.domain}}/auth/realm/master</url>
+                    <url>https://{{context.domain}}/auth/realms/master</url>
                     <client_id>{{context.project.oidc_client_id}}</client_id>
                     <client_secret>{{context.project.oidc_client_secret}}</client_secret>
                     <redirect_uri>https://{{context.domain}}{{context.project.access_path}}/galaxy/authnz/custos/callback</redirect_uri>
@@ -972,7 +972,6 @@ helmsman_config:
               session_duration: 30
         image:
           repository: galaxy/galaxy-k8s
-          tag: 20.01
         persistence:
           storageClass: nfs
         postgresql:
