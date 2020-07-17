@@ -174,6 +174,10 @@ helmsman_config:
               until [ -f /start/command ];
               do
                   sleep 45;
+              done;
+              until occ config:system:get instanceid;
+              do
+                  sleep 5
               done; occ app:update --all; occ upgrade; occ app:enable files_external; occ app:disable photos; occ app:disable theming; occ app:disable gallery; occ app:install oidc_login; occ app:install external; occ config:app:set --value yes files_external allow_user_mounting; occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends; occ files_external:create -c "datadir=/gvl" / local null::null; if [ -d "/var/www/html/themes/galaxy/gvl-extras" ]; then
                   occ maintenance:theme:update;
                   mkdir -p "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons" && cp /var/www/html/themes/galaxy/gvl-extras/*.svg "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons";
