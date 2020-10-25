@@ -7,40 +7,13 @@ admin_email: "cloudman@someplace.org"
 
 projman_config:
   projects:
-    initial:
-      charts:
-        galaxy:
-          install_template: galaxy
-        jupyter:
-          install_template: jupyter
-        rstudio:
-          install_template: rstudio
-        terminalman:
-          install_template: terminalman
 
 helmsman_config:
   repositories:
-     - name: cloudve
-       url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
-     - name: jupyterhub
-       url: https://jupyterhub.github.io/helm-chart/
-     - name: alex
-       url: https://raw.githubusercontent.com/almahmoud/helm-charts/nextclouddev/
-  charts:
-    proxyinjector:
-      name: cloudve/proxyinjector
-      namespace: cloudman
-      create_namespace: false
   template_registries:
-    - name: cloudve
-      url:  https://raw.githubusercontent.com/galaxyproject/cloudlaunch-registry/master/template-registry.yaml
 
 # CloudMan bootstrap data
 cm_initial_cluster_data:
-rancher_url:
-rancher_api_key:
-rancher_cluster_id:
-rancher_project_id:
 
 # Special global values which are accessible from all charts
 global:
