@@ -9,7 +9,33 @@ metadata:
     heritage: {{ .Release.Service }}
 data:
   projman_config.yaml: |
-{{ toYaml .Values.projman_config | indent 4 }}
+{{- range $key, $entry := .Values.projman_config -}}
+  {{- $key | nindent 4 -}}:
+  {{- if (eq $key "projects") -}}
+    {{- range $projkey, $projentry := $entry -}}
+      {{- $projkey | nindent 6 -}}:
+      {{- range $projchildkey, $projchildentry := $projentry -}}
+        {{- $projchildkey | nindent 8 -}}:
+        {{- if (eq $projchildkey "charts") -}}
+          {{- range $chartkey, $chart := $projchildentry -}}
+            {{- $chartkey | nindent 10 -}}:
+            {{- if $chart.context -}}
+              {{- $bare := omit $chart "context" -}}
+              {{- $context := (fromYaml (tpl (toYaml $chart.context) $)) -}}
+              {{- toYaml (set $bare "context" $context) | trim | nindent 12 -}}
+            {{- else -}}
+               {{- toYaml $chart | trim | nindent 12 -}}
+            {{- end -}}
+          {{- end -}}
+        {{- else -}}
+          {{- toYaml $projentry | nindent 10 -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- toYaml $entry | nindent 6 -}}
+  {{- end -}}
+{{- end }}
   helmsman_config.yaml: |
 {{- range $key, $entry := .Values.helmsman_config -}}
   {{- $key | nindent 4 -}}:
