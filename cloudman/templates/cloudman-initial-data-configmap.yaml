@@ -8,6 +8,11 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 data:
+  global_context.yaml: |
+    domain: '{{ .Values.global.domain }}'
+    influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
+    influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
+    influxdb_username: '{{ .Values.influxdb.setDefaultUser.username }}'
   projman_config.yaml: |
 {{- range $key, $entry := .Values.projman_config -}}
   {{- $key | nindent 4 -}}:
