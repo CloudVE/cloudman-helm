@@ -10,9 +10,11 @@ metadata:
 data:
   global_context.yaml: |
     domain: '{{ .Values.global.domain }}'
+    keycloak_password: '{{ .Values.keycloak.keycloak.password }}'
     influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
     influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
     influxdb_username: '{{ .Values.influxdb.setDefaultUser.username }}'
+    influxdb_password: '{{ .Values.influxdb.setDefaultUser.password }}'
   projman_config.yaml: |
 {{- range $key, $entry := .Values.projman_config -}}
   {{- $key | nindent 4 -}}:
