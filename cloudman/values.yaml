@@ -274,8 +274,9 @@ prometheus:
 influxdb:
   setDefaultUser:
     enabled: true
-    username: "admin"
-    # password: "iAmRequired"
+    user:
+      username: "admin"
+      # password: "iAmRequired"
   initScripts:
     enabled: true
   persistence:
