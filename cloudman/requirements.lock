@@ -6,10 +6,10 @@ dependencies:
   repository: https://codecentric.github.io/helm-charts
   version: 6.0.0
 - name: prometheus-operator
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 8.5.15
+  repository: https://charts.helm.sh/stable
+  version: 9.3.2
 - name: influxdb
-  repository: https://kubernetes-charts.storage.googleapis.com/
+  repository: https://charts.helm.sh/stable
   version: 3.0.2
-digest: sha256:4e75347cad1bad63271ff7e2e07a11c5ccbd06ec80f95e5bf35874ce18fd76d5
-generated: "2020-04-08T13:55:31.460681-04:00"
+digest: sha256:9b61bf3a1ce0646b45b9a777c7197aab314abe73abe4d7abb87e425c554f76d3
+generated: "2020-11-24T19:00:46.502851+05:30"
