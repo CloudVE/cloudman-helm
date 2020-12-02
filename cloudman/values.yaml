@@ -20,8 +20,8 @@ global:
     domain: 192.168.99.100
 
 # This feature can be used to force the creation of OIDC clients
-# with the cloudman deployment. However, projman-helm will now handles
-# the client creation for the standard project isolation
+# with the cloudman deployment. However, in the case of the GVL,
+# projman-helm will now handles client creation by default
 oidc_clients: {}
   # galaxy:
   #   client_id: 'galaxy-auth'
