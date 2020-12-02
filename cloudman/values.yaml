@@ -52,7 +52,6 @@ cloudlaunch:
   image:
     repository: cloudve/cloudman-ui
     tag: latest
-
   ingress:
     enabled: true
     annotations: {}
