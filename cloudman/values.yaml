@@ -940,6 +940,8 @@ helmsman_config:
         influxdb_password: '{{ .Values.influxdb.setDefaultUser.password }}'
         admin_users: cloudman@someplace.org
       template: |
+        cvmfs:
+          enabled: true
         configs:
           oidc_config.xml: |
             <?xml version="1.0"?>
