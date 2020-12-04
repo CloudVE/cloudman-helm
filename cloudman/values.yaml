@@ -1482,6 +1482,7 @@ prometheus:
           - match:
               alertname: ClusterUnderUtilized
             receiver: 'scaledown'
+
 influxdb:
   setDefaultUser:
     enabled: true
