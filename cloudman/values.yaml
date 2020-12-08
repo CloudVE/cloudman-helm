@@ -118,8 +118,8 @@ cloudlaunch:
     extra_env:
       - name: OIDC_ENABLED
         value: "True"
-      - name: OIDC_AUTH_URI
-        value: "{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/master"
+      - name: OIDC_METADATA_URI
+        value: "{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/master/.well-known/openid-configuration"
       - name: OIDC_CLIENT_ID
         value: "cloudman"
       - name: OIDC_PUBLIC_URI
