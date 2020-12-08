@@ -1122,6 +1122,9 @@ helmsman_config:
         starting_dir: "/gvl"
         domain: '{{ .Values.global.domain }}'
       template: |
+        image:
+          repository: rocker/rstudio
+          tag: 3.6.3-ubuntu18.04
         oidc:
           client_id: "{{context.project.oidc_client_id}}"
           client_secret: {{context.project.oidc_client_secret}}
