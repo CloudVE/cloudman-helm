@@ -27,13 +27,12 @@ Rancher config settings
 */}}
 {{- define "cloudman.cluster_config" -}}
 {{- if .Values.cm_initial_cluster_data -}}
-{{ .Values.cm_initial_cluster_data | b64dec }}
+{{ .Values.cm_initial_cluster_data }}
 {{- end -}}
-rancher_config:
-  rancher_url: {{ .Values.rancher_url }}
-  rancher_api_key: {{ .Values.rancher_api_key }}
-  rancher_cluster_id: {{ .Values.rancher_cluster_id }}
-  rancher_project_id: {{ .Values.rancher_project_id }}
+rke_config:
+  rke_cluster_id: {{ .Values.global.domain }}
+  rke_registration_server: {{ .Values.rke_registration_server }}
+  rke_registration_token: {{ .Values.rke_registration_token }}
 {{- end -}}
 
 {{/*
