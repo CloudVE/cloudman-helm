@@ -27,7 +27,7 @@ spec:
         )
         or
         (
-          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m]))) > 0.7
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m]))) > 0.9
         )
       for: 2m
       labels:
@@ -50,7 +50,7 @@ spec:
           (1 - sum(:node_memory_MemAvailable_bytes:sum)
             /
            sum(kube_node_status_allocatable_memory_bytes))
-            > 0.7
+            > 0.9
         )
       for: 2m
       labels:
@@ -86,5 +86,21 @@ spec:
             < 0.5
         )
       for: 5m
+      labels:
+        severity: warning
+    - alert: PodNotSchedulable
+      annotations:
+        cpus: '{{ $labels.cpus }}'
+        memory: '{{ $labels.memory }}'
+        message: Cluster has unschedulable pods due to insufficient CPU or memory
+      expr: |-
+        topk by () (1, kube_pod_container_resource_requests_cpu_cores
+                       * on(pod) group_left(cpus) count_values("cpus", kube_pod_container_resource_requests_cpu_cores) by (pod)
+                       and on(pod) kube_pod_status_unschedulable)
+        * on () group_left(memory)
+        topk by () (1, kube_pod_container_resource_limits_memory_bytes
+                       * on(pod) group_left(memory) count_values("memory", kube_pod_container_resource_limits_memory_bytes) by (pod)
+                       and on(pod) kube_pod_status_unschedulable)
+      for: 1m
       labels:
         severity: warning
