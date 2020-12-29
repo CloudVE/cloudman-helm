@@ -90,8 +90,8 @@ spec:
         severity: warning
     - alert: PodNotSchedulable
       annotations:
-        cpus: '{{ $labels.cpus }}'
-        memory: '{{ $labels.memory }}'
+        cpus: '{{ "{{" }} $labels.cpus {{ "}}" }}'
+        memory: '{{ "{{" }} $labels.memory {{ "}}" }}'
         message: Cluster has unschedulable pods due to insufficient CPU or memory
       expr: |-
         topk by () (1, kube_pod_container_resource_requests_cpu_cores
