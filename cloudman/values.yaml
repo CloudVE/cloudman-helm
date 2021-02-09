@@ -11,10 +11,6 @@ projman_config:
       charts:
         galaxy:
           install_template: galaxy
-        jupyter:
-          install_template: jupyter
-        rstudio:
-          install_template: rstudio
         terminalman:
           install_template: terminalman
 
