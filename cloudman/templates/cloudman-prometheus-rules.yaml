@@ -104,3 +104,13 @@ spec:
       for: 1m
       labels:
         severity: warning
+    - alert: AnticipatoryScaling
+      annotations:
+        message: Anticipatorily schedule a node since a user is currently active
+      expr: |-
+        label_replace(
+          rate(nginx_ingress_controller_bytes_sent_count{ingress=~".*-activity-canary",status="200"}[5m]),
+          "label_usegalaxy_org_cm_autoscaling_group", "anticipatory", "", "") > 0
+      for: 2s
+      labels:
+        severity: info
