@@ -235,6 +235,8 @@ prometheus:
         - ~
   prometheus:
     prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
       ruleSelector:
         matchLabels:
           release: "cloudman"
