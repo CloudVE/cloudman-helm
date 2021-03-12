@@ -261,19 +261,60 @@ prometheus:
         - name: 'blackhole'
       route:
         group_by:
-          - alertname
-        group_interval: 2m
+        - alertname
+        group_interval: 5m
         group_wait: 30s
-        repeat_interval: 5m
-        receiver: 'blackhole'
+        receiver: blackhole
+        repeat_interval: 8h
         routes:
-          - match:
-              alertname: ClusterOverUtilized
-            receiver: 'scaleup'
-          - match:
-              alertname: ClusterUnderUtilized
-            receiver: 'scaledown'
-
+        - group_interval: 2m
+          group_wait: 5s
+          match:
+            alertname: NodeUnderUtilized
+          receiver: scaledown
+          repeat_interval: 5m
+        - group_interval: 5m
+          group_wait: 5s
+          match:
+            alertname: PodNotSchedulable
+          repeat_interval: 5m
+          receiver: scaleup
+        - group_interval: 2m
+          group_wait: 1s
+          match:
+            alertname: AnticipatoryScaling
+          repeat_interval: 2m
+          receiver: scaleup
+        - match:
+            severity: critical
+          receiver: email
+      inhibit_rules:
+      - target_match:
+          alertname: NodeUnderUtilized
+          label_usegalaxy_org_cm_autoscaling_group: anticipatory
+        source_match:
+          alertname: AnticipatoryScaling
+          label_usegalaxy_org_cm_autoscaling_group: anticipatory
+      - target_match:
+          alertname: KubeControllerManagerDown
+        source_match:
+          alertname: Watchdog
+        equal: ['prometheus']
+      - target_match:
+          alertname: KubeSchedulerDown
+        source_match:
+          alertname: Watchdog
+        equal: ['prometheus']
+      - target_match:
+          alertname: etcdInsufficientMembers
+        source_match:
+          alertname: Watchdog
+        equal: ['prometheus']
+      - target_match:
+          alertname: etcdMembersDown
+        source_match:
+          alertname: Watchdog
+        equal: ['prometheus']
 influxdb:
   setDefaultUser:
     enabled: true
