@@ -202,7 +202,7 @@ keycloak:
           - name: theme
             mountPath: /theme
 
-prometheus:
+kube-prometheus-stack:
   grafana:
     # adminPassword: "changeme"
     sidecar:
@@ -235,6 +235,14 @@ prometheus:
         - ~
   prometheus:
     prometheusSpec:
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: ebs
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 50Gi
       serviceMonitorSelectorNilUsesHelmValues: false
       ruleSelectorNilUsesHelmValues: false
       ruleSelector:
