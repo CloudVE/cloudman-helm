@@ -23,13 +23,6 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "cloudman.keycloak_url" -}}
-{{- printf "%s://auth.%s/auth" .Values.ingress.protocol (.Values.global.domain | default (index .Values.ingress.hosts 0)) }} 
-{{- end -}}
-
-{{/*
 Rancher config settings
 */}}
 {{- define "cloudman.cluster_config" -}}
@@ -85,17 +78,6 @@ This can be overridden by creating a custom database on startup
 */}}
 {{- define "cloudman.influxdb_database" -}}
 {{- printf "telegraf" -}}
-{{- end -}}
-
-{{/*
-Return password for postgres keycloak user
-*/}}
-{{- define "cloudman.dbKeycloakPassword" -}}
-{{- if .Values.keycloak.keycloak.persistence.dbPassword }}
-    {{- .Values.keycloak.keycloak.persistence.dbPassword -}}
-{{- else -}}
-    {{- randAlphaNum 10 -}}
-{{- end -}}
 {{- end -}}
 
 {{/*

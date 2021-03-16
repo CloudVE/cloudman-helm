@@ -17,7 +17,12 @@ cm_initial_cluster_data:
 
 # Special global values which are accessible from all charts
 global:
-    domain: 192.168.99.100
+  domain: 192.168.99.100
+  keycloak:
+    cloudmanClient:
+      realmSelector: "gvl-sso"
+      clientId: "cloudman"
+      realm: "gvl"
 
 # This feature can be used to force the creation of OIDC clients
 # with the cloudman deployment. However, projman-helm will now handles
@@ -116,7 +121,7 @@ cloudlaunch:
       - name: OIDC_ENABLED
         value: "True"
       - name: OIDC_METADATA_URI
-        value: '{{ include "cloudman.keycloak_url" . }}/realms/{{ .Values.keycloak.cloudmanClient.realm }}/.well-known/openid-configuration'
+        value: '{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/.well-known/openid-configuration'
       - name: OIDC_CLIENT_ID
         value: "cloudman"
       - name: OIDC_PUBLIC_URI
@@ -144,13 +149,7 @@ cloudlaunch:
         - ~
       protocol: https
 
-keycloak:
-  cloudmanClient:
-    realmSelector: "gvl-sso"
-    clientId: "cloudman"
-    realm: "gvl"
-
-kube-prometheus-stack:
+kubePrometheusStack:
   grafana:
     # adminPassword: "changeme"
     sidecar:
@@ -162,10 +161,10 @@ kube-prometheus-stack:
         serve_from_sub_path: true
       auth.generic_oauth:
         enabled: true
-        client_id: cloudman
-        auth_url: "{{ include "cloudman.keycloak_url" . }}/realms/{{ .Values.keycloak.cloudmanClient.realm }}/protocol/openid-connect/auth"
-        token_url: "{{ include "cloudman.keycloak_url" . }}/realms/{{ .Values.keycloak.cloudmanClient.realm }}/protocol/openid-connect/token"
-        api_url: "{{ include "cloudman.keycloak_url" . }}/realms/{{ .Values.keycloak.cloudmanClient.realm }}/protocol/openid-connect/userinfo"
+        client_id: "cloudman"
+        auth_url: "https://{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/auth"
+        token_url: "https://{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/token"
+        api_url: "https://{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/userinfo"
         tls_skip_verify_insecure: true
         allow_sign_up: true
       auth:
@@ -179,8 +178,7 @@ kube-prometheus-stack:
     ingress:
       enabled: true
       path: /grafana
-      hosts:
-        - ~
+      hosts: []
   prometheus:
     prometheusSpec:
       storageSpec:

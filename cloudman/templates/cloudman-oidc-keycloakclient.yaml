@@ -7,13 +7,13 @@ metadata:
 spec:
   realmSelector:
     matchLabels:
-      app: {{ .Values.keycloak.cloudmanClient.realmSelector }}
+      app: {{ .Values.global.keycloak.cloudmanClient.realmSelector }}
   client:
-    clientId: {{ .Values.keycloak.cloudmanClient.clientId }}
+    clientId: {{ .Values.global.keycloak.cloudmanClient.clientId }}
     protocol: openid-connect
     enabled: true
     name: Cloudman OIDC
-    clientAuthenticatorType: client-secret
-    secret: '{{ randAlphaNum 8 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 12 }}'
+    public: true
+    #secret: '{{ randAlphaNum 8 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 12 }}'
     redirectUris:
       - '{{ include "cloudman.root_url" . }}/*'
