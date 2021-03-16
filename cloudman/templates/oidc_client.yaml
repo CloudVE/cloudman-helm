@@ -1,0 +1,19 @@
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: {{ template "cloudman.fullname" . }}-oidc-keycloakclient
+  labels:
+    app: gvl-sso
+spec:
+  realmSelector:
+    matchLabels:
+      app: {{ .Values.keycloak.cloudmanClient.realmSelector }}
+  client:
+    clientId: {{ .Values.keycloak.cloudmanClient.clientId }}
+    protocol: openid-connect
+    enabled: true
+    name: Cloudman OIDC
+    clientAuthenticatorType: client-secret
+    secret: '{{ randAlphaNum 8 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 12 }}'
+    redirectUris:
+      - '{{ include "cloudman.root_url" . }}/*'

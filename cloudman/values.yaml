@@ -89,29 +89,26 @@ cloudlaunch:
         mount_path: /app/secrets
         secret_name: '{{ template "cloudman.fullname" . }}-secret'
         read_only: true
-    extraInitContainers:
-      - name: post-install-job
-        image: "gempesaw/curl-jq"
-        command: ["/bin/sh", "/kc-init/update_keycloak.sh"]
-        volumeMounts:
-          - name: kc-init
-            mountPath: /kc-init
-            readOnly: true
-        env:
-          - name: OIDC_CLIENT_ID
-            value: "cloudman"
-          - name: KEYCLOAK_HTTP_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "{{ .Release.Name }}-keycloak-http"
-                key: password
+    # extraInitContainers:
+    #   - name: post-install-job
+    #     image: "gempesaw/curl-jq"
+    #     command: ["/bin/sh", "/kc-init/update_keycloak.sh"]
+    #     volumeMounts:
+    #       - name: kc-init
+    #         mountPath: /kc-init
+    #         readOnly: true
+    #     env:
+    #       - name: OIDC_CLIENT_ID
+    #         value: "cloudman"
+    #       - name: KEYCLOAK_HTTP_PASSWORD
+    #         valueFrom:
+    #           secretKeyRef:
+    #             name: "{{ .Release.Name }}-keycloak-http"
+    #             key: password
     # TODO: include release name in configmap name
     extraVolumes: |
       - name: kubeconfig
         emptyDir: {}
-      - name: kc-init
-        configMap:
-          name: kc-init-script
     extraVolumeMounts: |
       - name: kubeconfig
         mountPath: /home/cloudman
@@ -119,7 +116,7 @@ cloudlaunch:
       - name: OIDC_ENABLED
         value: "True"
       - name: OIDC_METADATA_URI
-        value: "{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/master/.well-known/openid-configuration"
+        value: '{{ include "cloudman.keycloak_url" . }}/realms/{{ .Values.keycloak.cloudmanClient.realm }}/.well-known/openid-configuration'
       - name: OIDC_CLIENT_ID
         value: "cloudman"
       - name: OIDC_PUBLIC_URI
@@ -148,59 +145,10 @@ cloudlaunch:
       protocol: https
 
 keycloak:
-  userRegistration:
-    enabled: false
-  keycloak:
-    extraArgs: "-Dkeycloak.profile.feature.scripts=enabled"
-    username: "admin"
-    # password: changeMe
-    existingSecret: "{{ .Release.Name }}-keycloak-http"
-    existingSecretKey: "password"
-    ingress:
-      enabled: true
-      # Add a null host to default to IP
-      hosts:
-        - ~
-      path: /auth
-    persistence:
-      deployPostgres: false
-      dbVendor: "postgres"
-      dbName: "keycloak"
-      dbPort: 5432
-      dbUser: "keycloak"
-      # Will randomly generate if not specified
-      # dbPassword: changeMe
-      existingSecret: "{{ .Release.Name }}-postgres-keycloak-password"
-      existingSecretKey: "postgres-keycloak-password"
-    # Specifying address directly through extraEnv since `dbHost` is not run through tpl
-    extraEnv: |
-      - name: DB_ADDR
-        value: "{{ .Release.Name }}-postgresql"
-      - name: PROXY_ADDRESS_FORWARDING
-        value: "true"
-    extraVolumes: |
-      - name: theme
-        emptyDir: {}
-
-    extraVolumeMounts: |
-      - name: theme
-        mountPath: /opt/jboss/keycloak/themes/keycloak
-
-    extraInitContainers: |
-      - name: theme-provider
-        image: cloudve/gvl-keycloak-theme:latest
-        imagePullPolicy: IfNotPresent
-        command:
-          - sh
-        args:
-          - -c
-          - |
-            echo "Copying theme..."
-            cp -R /customtheme/* /theme
-            echo "done."
-        volumeMounts:
-          - name: theme
-            mountPath: /theme
+  cloudmanClient:
+    realmSelector: "gvl-sso"
+    clientId: "cloudman"
+    realm: "gvl"
 
 kube-prometheus-stack:
   grafana:
@@ -215,9 +163,9 @@ kube-prometheus-stack:
       auth.generic_oauth:
         enabled: true
         client_id: cloudman
-        auth_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/auth"
-        token_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/token"
-        api_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/userinfo"
+        auth_url: "{{ include "cloudman.keycloak_url" . }}/realms/{{ .Values.keycloak.cloudmanClient.realm }}/protocol/openid-connect/auth"
+        token_url: "{{ include "cloudman.keycloak_url" . }}/realms/{{ .Values.keycloak.cloudmanClient.realm }}/protocol/openid-connect/token"
+        api_url: "{{ include "cloudman.keycloak_url" . }}/realms/{{ .Values.keycloak.cloudmanClient.realm }}/protocol/openid-connect/userinfo"
         tls_skip_verify_insecure: true
         allow_sign_up: true
       auth:

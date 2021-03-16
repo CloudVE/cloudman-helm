@@ -23,6 +23,13 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "cloudman.keycloak_url" -}}
+{{- printf "%s://auth.%s/auth" .Values.ingress.protocol (.Values.global.domain | default (index .Values.ingress.hosts 0)) }} 
+{{- end -}}
+
+{{/*
 Rancher config settings
 */}}
 {{- define "cloudman.cluster_config" -}}
