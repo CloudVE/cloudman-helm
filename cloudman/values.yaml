@@ -135,13 +135,6 @@ cloudlaunch:
       # The postgres superuser password will not be set if not specified. If you need a postgres superuser,
       # this should be set at launch (eg: for access to manually modify databases on the running server)
       # postgresqlPostgresPassword: admin_pass
-      initdbScriptsSecret: "{{ .Release.Name }}-keycloak-initdb"
-      extraEnv:
-      - name: KEYCLOAK_DB_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: "{{ .Release.Name }}-postgres-keycloak-password"
-            key: postgres-keycloak-password
     ingress:
       enabled: true
       path: /cloudman
