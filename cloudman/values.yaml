@@ -19,6 +19,7 @@ cm_initial_cluster_data:
 global:
   domain: 192.168.99.100
   keycloak:
+    namespace: keycloak
     cloudmanClient:
       realmSelector: "gvl-sso"
       clientId: "cloudman"

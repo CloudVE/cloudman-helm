@@ -2,6 +2,7 @@ apiVersion: keycloak.org/v1alpha1
 kind: KeycloakClient
 metadata:
   name: {{ template "cloudman.fullname" . }}-oidc-keycloakclient
+  namespace: {{ .Values.global.keycloak.namespace }}
   labels:
     app: gvl-sso
 spec:
@@ -14,6 +15,7 @@ spec:
     enabled: true
     name: Cloudman OIDC
     public: true
+    standardFlowEnabled: true
     #secret: '{{ randAlphaNum 8 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 12 }}'
     redirectUris:
       - '{{ include "cloudman.root_url" . }}/*'
