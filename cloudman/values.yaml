@@ -121,7 +121,7 @@ cloudlaunch:
       - name: OIDC_ENABLED
         value: "True"
       - name: OIDC_METADATA_URI
-        value: '{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/.well-known/openid-configuration'
+        value: '{{.Values.ingress.protocol}}://auth.{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/.well-known/openid-configuration'
       - name: OIDC_CLIENT_ID
         value: "cloudman"
       - name: OIDC_PUBLIC_URI
@@ -162,9 +162,9 @@ kube-prometheus-stack:
       auth.generic_oauth:
         enabled: true
         client_id: "cloudman"
-        auth_url: "https://{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/auth"
-        token_url: "https://{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/token"
-        api_url: "https://{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/userinfo"
+        auth_url: "https://auth.{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/auth"
+        token_url: "https://auth.{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/token"
+        api_url: "https://auth.{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/userinfo"
         tls_skip_verify_insecure: true
         allow_sign_up: true
       auth:
