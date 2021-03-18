@@ -149,7 +149,7 @@ cloudlaunch:
         - ~
       protocol: https
 
-kubePrometheusStack:
+kube-prometheus-stack:
   grafana:
     # adminPassword: "changeme"
     sidecar:
