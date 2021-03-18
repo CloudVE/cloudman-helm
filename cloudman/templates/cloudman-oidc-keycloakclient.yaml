@@ -14,7 +14,7 @@ spec:
     protocol: openid-connect
     enabled: true
     name: Cloudman OIDC
-    public: true
+    publicClient: true
     standardFlowEnabled: true
     #secret: '{{ randAlphaNum 8 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 4 }}-{{ randAlphaNum 12 }}'
     redirectUris:
