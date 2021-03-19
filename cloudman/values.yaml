@@ -95,22 +95,7 @@ cloudlaunch:
         mount_path: /app/secrets
         secret_name: '{{ template "cloudman.fullname" . }}-secret'
         read_only: true
-    # extraInitContainers:
-    #   - name: post-install-job
-    #     image: "gempesaw/curl-jq"
-    #     command: ["/bin/sh", "/kc-init/update_keycloak.sh"]
-    #     volumeMounts:
-    #       - name: kc-init
-    #         mountPath: /kc-init
-    #         readOnly: true
-    #     env:
-    #       - name: OIDC_CLIENT_ID
-    #         value: "cloudman"
-    #       - name: KEYCLOAK_HTTP_PASSWORD
-    #         valueFrom:
-    #           secretKeyRef:
-    #             name: "{{ .Release.Name }}-keycloak-http"
-    #             key: password
+
     # TODO: include release name in configmap name
     extraVolumes: |
       - name: kubeconfig
