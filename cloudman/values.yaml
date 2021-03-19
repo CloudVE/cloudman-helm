@@ -17,7 +17,13 @@ cm_initial_cluster_data:
 
 # Special global values which are accessible from all charts
 global:
-    domain: 192.168.99.100
+  domain: 192.168.99.100
+  keycloak:
+    namespace: keycloak
+    cloudmanClient:
+      realmSelector: "gvl-sso"
+      clientId: "cloudman"
+      realm: "gvl"
 
 # This feature can be used to force the creation of OIDC clients
 # with the cloudman deployment. However, projman-helm will now handles
@@ -89,29 +95,26 @@ cloudlaunch:
         mount_path: /app/secrets
         secret_name: '{{ template "cloudman.fullname" . }}-secret'
         read_only: true
-    extraInitContainers:
-      - name: post-install-job
-        image: "gempesaw/curl-jq"
-        command: ["/bin/sh", "/kc-init/update_keycloak.sh"]
-        volumeMounts:
-          - name: kc-init
-            mountPath: /kc-init
-            readOnly: true
-        env:
-          - name: OIDC_CLIENT_ID
-            value: "cloudman"
-          - name: KEYCLOAK_HTTP_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "{{ .Release.Name }}-keycloak-http"
-                key: password
+    # extraInitContainers:
+    #   - name: post-install-job
+    #     image: "gempesaw/curl-jq"
+    #     command: ["/bin/sh", "/kc-init/update_keycloak.sh"]
+    #     volumeMounts:
+    #       - name: kc-init
+    #         mountPath: /kc-init
+    #         readOnly: true
+    #     env:
+    #       - name: OIDC_CLIENT_ID
+    #         value: "cloudman"
+    #       - name: KEYCLOAK_HTTP_PASSWORD
+    #         valueFrom:
+    #           secretKeyRef:
+    #             name: "{{ .Release.Name }}-keycloak-http"
+    #             key: password
     # TODO: include release name in configmap name
     extraVolumes: |
       - name: kubeconfig
         emptyDir: {}
-      - name: kc-init
-        configMap:
-          name: kc-init-script
     extraVolumeMounts: |
       - name: kubeconfig
         mountPath: /home/cloudman
@@ -119,7 +122,7 @@ cloudlaunch:
       - name: OIDC_ENABLED
         value: "True"
       - name: OIDC_METADATA_URI
-        value: "{{.Values.ingress.protocol}}://{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/master/.well-known/openid-configuration"
+        value: '{{.Values.ingress.protocol}}://auth.{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/.well-known/openid-configuration'
       - name: OIDC_CLIENT_ID
         value: "cloudman"
       - name: OIDC_PUBLIC_URI
@@ -133,13 +136,6 @@ cloudlaunch:
       # The postgres superuser password will not be set if not specified. If you need a postgres superuser,
       # this should be set at launch (eg: for access to manually modify databases on the running server)
       # postgresqlPostgresPassword: admin_pass
-      initdbScriptsSecret: "{{ .Release.Name }}-keycloak-initdb"
-      extraEnv:
-      - name: KEYCLOAK_DB_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: "{{ .Release.Name }}-postgres-keycloak-password"
-            key: postgres-keycloak-password
     ingress:
       enabled: true
       path: /cloudman
@@ -147,62 +143,7 @@ cloudlaunch:
         - ~
       protocol: https
 
-keycloak:
-  userRegistration:
-    enabled: false
-  keycloak:
-    extraArgs: "-Dkeycloak.profile.feature.scripts=enabled"
-    username: "admin"
-    # password: changeMe
-    existingSecret: "{{ .Release.Name }}-keycloak-http"
-    existingSecretKey: "password"
-    ingress:
-      enabled: true
-      # Add a null host to default to IP
-      hosts:
-        - ~
-      path: /auth
-    persistence:
-      deployPostgres: false
-      dbVendor: "postgres"
-      dbName: "keycloak"
-      dbPort: 5432
-      dbUser: "keycloak"
-      # Will randomly generate if not specified
-      # dbPassword: changeMe
-      existingSecret: "{{ .Release.Name }}-postgres-keycloak-password"
-      existingSecretKey: "postgres-keycloak-password"
-    # Specifying address directly through extraEnv since `dbHost` is not run through tpl
-    extraEnv: |
-      - name: DB_ADDR
-        value: "{{ .Release.Name }}-postgresql"
-      - name: PROXY_ADDRESS_FORWARDING
-        value: "true"
-    extraVolumes: |
-      - name: theme
-        emptyDir: {}
-
-    extraVolumeMounts: |
-      - name: theme
-        mountPath: /opt/jboss/keycloak/themes/keycloak
-
-    extraInitContainers: |
-      - name: theme-provider
-        image: cloudve/gvl-keycloak-theme:latest
-        imagePullPolicy: IfNotPresent
-        command:
-          - sh
-        args:
-          - -c
-          - |
-            echo "Copying theme..."
-            cp -R /customtheme/* /theme
-            echo "done."
-        volumeMounts:
-          - name: theme
-            mountPath: /theme
-
-kube-prometheus-stack:
+kubeprometheus:
   grafana:
     # adminPassword: "changeme"
     sidecar:
@@ -214,10 +155,10 @@ kube-prometheus-stack:
         serve_from_sub_path: true
       auth.generic_oauth:
         enabled: true
-        client_id: cloudman
-        auth_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/auth"
-        token_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/token"
-        api_url: "https://{{ .Values.global.domain }}/auth/realms/master/protocol/openid-connect/userinfo"
+        client_id: "cloudman"
+        auth_url: "https://auth.{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/auth"
+        token_url: "https://auth.{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/token"
+        api_url: "https://auth.{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/userinfo"
         tls_skip_verify_insecure: true
         allow_sign_up: true
       auth:
@@ -231,8 +172,7 @@ kube-prometheus-stack:
     ingress:
       enabled: true
       path: /grafana
-      hosts:
-        - ~
+      hosts: []
   prometheus:
     prometheusSpec:
       storageSpec:

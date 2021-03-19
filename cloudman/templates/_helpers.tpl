@@ -81,17 +81,6 @@ This can be overridden by creating a custom database on startup
 {{- end -}}
 
 {{/*
-Return password for postgres keycloak user
-*/}}
-{{- define "cloudman.dbKeycloakPassword" -}}
-{{- if .Values.keycloak.keycloak.persistence.dbPassword }}
-    {{- .Values.keycloak.keycloak.persistence.dbPassword -}}
-{{- else -}}
-    {{- randAlphaNum 10 -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Return password for keycloak admin user
 */}}
 {{- define "cloudman.httpKeycloakPassword" -}}
