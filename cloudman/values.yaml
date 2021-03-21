@@ -145,6 +145,7 @@ kubeprometheus:
         token_url: "https://auth.{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/token"
         api_url: "https://auth.{{ .Values.global.domain }}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/protocol/openid-connect/userinfo"
         tls_skip_verify_insecure: true
+        scopes: profile email
         allow_sign_up: true
       auth:
         oauth_auto_login: true
