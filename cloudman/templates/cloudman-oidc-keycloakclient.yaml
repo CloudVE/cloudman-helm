@@ -17,6 +17,7 @@ spec:
     defaultClientScopes:
      - "profile"
      - "email"
+     - "roles"
     name: Cloudman OIDC
     publicClient: true
     standardFlowEnabled: true
