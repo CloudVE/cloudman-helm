@@ -13,6 +13,10 @@ spec:
     clientId: {{ .Values.global.keycloak.cloudmanClient.clientId }}
     protocol: openid-connect
     enabled: true
+    fullScopeAllowed: true
+    defaultClientScopes:
+     - "profile"
+     - "email"
     name: Cloudman OIDC
     publicClient: true
     standardFlowEnabled: true
