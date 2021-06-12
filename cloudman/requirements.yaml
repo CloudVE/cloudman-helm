@@ -4,7 +4,7 @@ dependencies:
     version: 0.4.0
   - name: kube-prometheus-stack
     repository: https://prometheus-community.github.io/helm-charts
-    version: 14.0.1
+    version: 16.7.0
     alias: kubeprometheus
   - name: influxdb
     repository: https://charts.helm.sh/stable
