@@ -107,7 +107,7 @@ cloudlaunch:
       - name: OIDC_ENABLED
         value: "True"
       - name: OIDC_METADATA_URI
-        value: '{{.Values.ingress.protocol}}://auth.{{.Values.global.domain | default (index .Values.ingress.hosts 0)}}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/.well-known/openid-configuration'
+        value: 'https://{{.Values.global.keycloak_hostname | default (index .Values.ingress.hosts 0)}}/auth/realms/{{ .Values.global.keycloak.cloudmanClient.realm }}/.well-known/openid-configuration'
       - name: OIDC_CLIENT_ID
         value: "cloudman"
       - name: OIDC_PUBLIC_URI
@@ -222,9 +222,6 @@ kubeprometheus:
             alertname: AnticipatoryScaling
           repeat_interval: 2m
           receiver: scaleup
-        - match:
-            severity: critical
-          receiver: email
       inhibit_rules:
       - target_match:
           alertname: NodeUnderUtilized
