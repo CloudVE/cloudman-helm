@@ -23,12 +23,12 @@ spec:
               (
                 # Sort available nodes in each scaling group by the amount of free CPU
                 (
-                sum(kube_node_status_allocatable_cpu_cores) by (node) - sum(kube_pod_container_resource_requests_cpu_cores) by (node)
+                sum(kube_node_status_allocatable{resource="cpu",unit="core"}) by (node) - sum(kube_pod_container_resource_requests{resource="cpu",unit="core"}) by (node)
                 # Add the autoscaling group label to each node
                 + on(node) group_left(label_usegalaxy_org_cm_autoscaling_group) (kube_node_labels{label_usegalaxy_org_cm_autoscaling_group!=""} * 0)
                 # Check whether the node using the least CPU in each group would fit into an available node
                 - ignoring(node) group_left min(
-                    sum(kube_pod_container_resource_requests_cpu_cores) by (node)
+                    sum(kube_pod_container_resource_requests{resource="cpu",unit="core"}) by (node)
                     # Add the autoscaling group label to each node
                     + on(node) group_left(label_usegalaxy_org_cm_autoscaling_group) (kube_node_labels{label_usegalaxy_org_cm_autoscaling_group!=""} * 0)
                   ) by (label_usegalaxy_org_cm_autoscaling_group)
@@ -42,12 +42,12 @@ spec:
               (
                 # Sort available nodes in each scaling group by the amount of free RAM
                 (
-                sum(kube_node_status_allocatable_memory_bytes) by (node) - sum(kube_pod_container_resource_requests_memory_bytes) by (node)
+                sum(kube_node_status_allocatable{resource="memory",unit="byte"}) by (node) - sum(kube_pod_container_resource_requests{resource="memory",unit="byte"}) by (node)
                 # Add the autoscaling group label to each node
                 + on(node) group_left(label_usegalaxy_org_cm_autoscaling_group) (kube_node_labels{label_usegalaxy_org_cm_autoscaling_group!=""} * 0)
                 # Check whether the node using the least RAM in each group would fit into an available node
                 - ignoring(node) group_left min(
-                    sum(kube_pod_container_resource_requests_memory_bytes) by (node)
+                    sum(kube_pod_container_resource_requests{resource="memory",unit="byte"}) by (node)
                     # Add the autoscaling group label to each node
                     + on(node) group_left(label_usegalaxy_org_cm_autoscaling_group) (kube_node_labels{label_usegalaxy_org_cm_autoscaling_group!=""} * 0)
                   ) by (label_usegalaxy_org_cm_autoscaling_group)
@@ -71,19 +71,19 @@ spec:
         message: Cluster has unschedulable pods due to insufficient CPU or memory
       expr: |-
         # Find highest cpu*memory request for each scaling group
-        topk by (label_usegalaxy_org_cm_autoscaling_group) (1,
+        topk by (label_usegalaxy_org_cm_autoscaling_group) (5,
           # Find CPU requests
-          (kube_pod_container_resource_requests_cpu_cores
+          (sum(kube_pod_container_resource_requests{resource="cpu",unit="core"}) by (pod)
           # Add CPUs as a label
-          * on(pod) group_left(cpus) count_values("cpus", kube_pod_container_resource_requests_cpu_cores) by (pod)
+          * on(pod) group_left(cpus) count_values("cpus", sum(kube_pod_container_resource_requests{resource="cpu",unit="core"}) by (pod))  by (pod)
           # Only filter on unschedulable pods
           and on(pod) kube_pod_status_unschedulable)
           # Match with memory requests
-          * on (pod, container, instance) group_left(memory)
+          * on (pod) group_left(memory)
           # Find memory requests
-          (kube_pod_container_resource_limits_memory_bytes
+          (sum(kube_pod_container_resource_requests{resource="memory",unit="byte"}) by (pod)
           # Add memory as a label
-          * on(pod) group_left(memory) count_values("memory", kube_pod_container_resource_limits_memory_bytes) by (pod)
+          * on(pod) group_left(memory) count_values("memory", sum(kube_pod_container_resource_requests{resource="memory",unit="byte"}) by (pod)) by (pod)
           # Only filter on unschedulable pods
           and on(pod) kube_pod_status_unschedulable)
           # Add scaling group as a label
