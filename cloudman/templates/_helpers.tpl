@@ -33,6 +33,13 @@ rke_config:
   rke_cluster_id: {{ .Values.global.domain }}
   rke_registration_server: {{ .Values.rke_registration_server }}
   rke_registration_token: {{ .Values.rke_registration_token }}
+  {{ if .Values.kube_cloud_provider -}}
+  kube_cloud_provider: {{ .Values.kube_cloud_provider }}
+  {{ end -}}
+  {{ if .Values.kube_cloud_conf -}}
+  kube_cloud_conf: |
+    {{ nindent 4 .Values.kube_cloud_conf }}
+  {{ end -}}
 {{- end -}}
 
 {{/*
