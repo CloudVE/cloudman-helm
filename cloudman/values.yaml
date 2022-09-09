@@ -65,7 +65,9 @@ cloudlaunch:
       # kubernetes.io/ingress.class: nginx
     path: /
     hosts:
-      - ~
+      - host: ~
+        paths:
+          - path: "/"
     tls: []
 
   cloudlaunchserver:
@@ -125,7 +127,9 @@ cloudlaunch:
       enabled: true
       path: /cloudman
       hosts:
-        - ~
+        - host: ~
+          paths:
+            - path: "/cloudman"
       protocol: https
 
 kubeprometheus:
